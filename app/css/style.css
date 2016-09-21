@@ -1,8 +1,75 @@
-.nav-left ul {    
-    overflow: auto; 
-    height: 100%; 
-    width: 100%;
-    margin: 0;
-    padding: 10px;
-    left: 0;
+body {
+	background-color: #e8f5e9;
+}
+
+.left-list {
+	overflow: auto;
+	height: 100%;
+	width: 100%;
+	padding-left: 5px;
+	padding-right: 5px;
+	background-color: #e8f5e9;
+}
+
+.navbar-inverse {
+	background-color: #1b5e20;
+	border-color: #1b5e20;
+}
+
+.navbar-inverse .navbar-nav .active a {
+	background-color: #2e7d32;
+}
+
+.navbar-inverse .navbar-nav .active a:hover {
+	background-color: #2e7d32;
+}
+
+.navbar-inverse .navbar-nav .active a:focus {
+	background-color: #2e7d32;
+}
+
+.navbar-inverse .navbar-nav li a {
+	color: #e8f5e9;
+}
+
+.navbar-inverse .navbar-nav li a:hover {
+	background-color: #2e7d32;
+}
+
+.navbar-inverse .navbar-nav li a:focus {
+	background-color: #2e7d32;
+}
+
+.navbar-inverse .navbar-brand {
+	color: #e8f5e9;
+}
+
+.panel-default {
+	border-color: #4caf50;
+}
+
+.panel-default .panel-heading {
+	background-color: #4caf50;
+	border-color: #4caf50;
+	color: white;
+	font-size: 1.2em;
+}
+
+.well-green {
+	background-color: #4caf50;
+	border-color: #4caf50;
+	color: white;
+}
+
+@media ( min-width : 780px) {
+	.col-md-3 {
+		width: 25%;
+	}
+}
+
+@media ( min-width : 780px) {
+	.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6,
+		.col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
+		float: left;
+	}
 }

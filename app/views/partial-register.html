@@ -1,0 +1,22 @@
+<div  class="container">
+<div class="panel panel-primary">
+	<div class="panel-heading">S'enregistrer</div>
+	<div class="panel-body">
+	<form data-ng-submit="register();">
+		<div class="alert alert-warning" ng-show="error!=''">
+			<a href="#" class="close" aria-label="close" ng-click="closeError()">&times;</a>
+			{{error}}
+		</div>
+		<div class="form-group">
+			<label for="login">Identifiant:</label> <input type="text"
+				class="form-control" id="login" data-ng-model="user.login">
+		</div>
+		<div class="form-group">
+			<label for="pwd">Mot de passe:</label> <input type="password"
+				class="form-control" id="pwd" data-ng-model="user.password">
+		</div>
+		<button type="submit" class="btn btn-primary">S'enregistrer</button>
+	</form>
+	</div>
+</div>
+</div>

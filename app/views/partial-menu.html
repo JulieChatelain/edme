@@ -1,23 +1,22 @@
 
 <div class="container-fluid">
 	<div class="navbar-header">
-		<button type="button" class="navbar-toggle" data-toggle="collapse"
-			data-target="#myNavbar">
-			<span class="icon-bar"></span> <span class="icon-bar"></span> <span
-				class="icon-bar"></span>
-		</button>
 		<a class="navbar-brand" href="#">App XXX</a>
 	</div>
-	<div class="collapse navbar-collapse">
+	<div>
 		<ul ng-if="loggedIn" class="nav navbar-nav">
-			<li class="active"><a href="#dashboard">Dashboard</a></li>
+			<li class="active"><a href="#dashboard">Tableau de bord</a></li>
 			<li><a href="#">Mon compte</a></li>
 			<li><a href="#">Paramètres</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
-			<li ng-if="!loggedIn"><a href="#"><span
+			<li ng-if="!loggedIn"><a href="#register"><span
 					class="glyphicon glyphicon-user"></span> S'enregistrer</a></li>
-			<li ng-if="loggedIn"><a href="#"><span
+					
+			<li ng-if="!loggedIn"><a href="#login"><span
+					class="glyphicon glyphicon-log-in"></span> Se connecter</a></li>
+			
+			<li ng-if="loggedIn" ng-click="logOut()"><a href="#"><span
 					class="glyphicon glyphicon-log-out"></span> Se déconnecter</a></li>
 		</ul>
 	</div>

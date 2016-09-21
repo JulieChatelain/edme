@@ -1,18 +1,20 @@
 {
-  "name": "edme",
+  "name": "eidmi",
   "version": "0.0.1",
   "description" : "Small EMR app",
   "main": "app/views/index.html",
   "window": {
     "toolbar" : true,
     "resizable": true,        
-    "min_width": 780,
+    "min_width": 800,
     "min_height": 300,
     "position" : "center"
   },
   "devDependencies": {},
   "dependencies": {
     "crypto-js": "^3.1.6",
-    "nedb": "^1.8.0"
+    "bcrypt-nodejs" : "^0.0.3",
+    "nedb": "^1.8.0",
+    "path" : "^0.12.7"
   }
 }

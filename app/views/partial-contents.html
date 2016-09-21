@@ -1,3 +1,69 @@
-<p>
-	Super test!
-</p>
+<!-- ************************** Left List ***************************** -->
+<div class="row">
+	<section class="col-md-3">
+		<div class="left-list">
+			<button type="button" class="btn btn-success" data-toggle="modal"
+				data-target="#patientModal" ng-click="openModal()">Nouveau patient</button>
+			<h4 class="well well-sm well-green">Mes patients</h4>
+			<input type="text" ng-model="patientsNameFilter">
+			<ul class="list-group">
+				<a href="#" class="list-group-item" ng-repeat="patient in patients | patientFilter : patientsNameFilter"">
+					{{patient.name.given[0]}} {{patient.name.family[0]}} ({{patient.gender}})</a>
+			</ul>
+		</div>
+	</section>
+
+	<!-- *************************** Content ****************************** -->
+
+	<section class="col-md-9">
+
+		<!-- New Patient Modal -->
+
+		<div id="patientModal" class="modal fade" role="dialog">
+			<div class="modal-dialog modal-lg">
+
+				<!-- Modal content-->
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">Créer un nouveau patient</h4>
+					</div>
+					<form data-ng-submit="createNewPatient();">
+						<div class="modal-body">
+							<div class="alert alert-warning" ng-show="error!=''">
+								<a href="#" class="close" aria-label="close"
+									ng-click="closeError()">&times;</a> {{error}}
+							</div>
+							<div class="form-group">
+								<label for="firstname">Prénom:</label> <input type="text"
+									class="form-control" id="firstname" data-ng-model="newPatient.firstname">
+							</div>
+							<div class="form-group">
+								<label for="lastname">Nom:</label> <input type="text"
+									class="form-control" id="lastname" data-ng-model="newPatient.lastname">
+							</div>
+							<div class="radio-inline">
+							  <label><input type="radio" name="gender" data-ng-model="newPatient.gender" value="F">F</label>
+							</div>
+							<div class="radio-inline">
+							  <label><input type="radio" name="gender" data-ng-model="newPatient.gender" value="M">M</label>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success">Créer</button>
+							<button type="button" class="btn btn-default"
+								data-dismiss="modal">Annuler</button>
+						</div>
+					</form>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- Patient data -->
+
+		<h3>Patient X</h3>
+
+
+	</section>
+</div>

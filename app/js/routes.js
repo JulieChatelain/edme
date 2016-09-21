@@ -5,14 +5,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
 
 	$stateProvider
 
-	// HOME STATES AND NESTED VIEWS
-	// ========================================
 	.state('login', {
 		url : '/login',
 		views : {
 
 			'' : {
-				templateUrl : 'login.html'
+				templateUrl : 'dashboard.html'
 			},
 
 			'menu@login' : {
@@ -20,26 +18,38 @@ app.config(function($stateProvider, $urlRouterProvider) {
 				controller : 'menuCtrl'
 			},
 
-			'loginForm@login' : {
+			'contents@login' : {
 				templateUrl : 'partial-login.html',
 				controller : 'loginCtrl'
 			}
 		}
 	})
-
-	// ABOUT PAGE AND MULTIPLE NAMED VIEWS
-	// =================================
-	.state('dashboard', {
-		url : '/dashboard',
+	
+	.state('register', {
+		url : '/register',
 		views : {
 
 			'' : {
 				templateUrl : 'dashboard.html'
 			},
 
-			'sidebar@dashboard' : {
-				templateUrl : 'partial-sidebar.html',
-				controller : 'sidebarCtrl'
+			'menu@register' : {
+				templateUrl : 'partial-menu.html',
+				controller : 'menuCtrl'
+			},
+
+			'contents@register' : {
+				templateUrl : 'partial-register.html',
+				controller : 'loginCtrl'
+			}
+		}
+	})
+	.state('dashboard', {
+		url : '/dashboard',
+		views : {
+
+			'' : {
+				templateUrl : 'dashboard.html'
 			},
 
 			'contents@dashboard' : {

@@ -6,4 +6,13 @@ app.controller('menuCtrl', function ($scope, $log, $state, $window) {
     	$scope.loggedIn = true;
     }
     
+    $scope.logOut = function (){
+    	delete $window.localStorage.token;
+    	$state.transitionTo('login');
+    };
+    
+
+    $scope.register = function (){
+    	
+    };
 });
