@@ -1,0 +1,16 @@
+{
+    "name": "edme-app",
+    "private": true,
+    "dependencies": {
+        "angular": "1.*",
+        "angular-jwt": "*",
+        "angular-ui-router": "0.2.13",
+        "bootstrap": "3.1.1",
+        "bootstrap-material-design": "0.3.0",
+        "normalize.css": "*",
+        "animate.css": "*",
+        "arrive": "*",
+        "moment": "*",
+        "jquery": "*"
+    }
+}
