@@ -1,28 +1,34 @@
 app.controller('dashboardCtrl', function($scope, $log, $state, $window,
-		DBService) {
+		DBService, Utils) {
 
-	var userId = "";
-	$scope.error = "";
+	$scope.userId = "";
+	
+	$scope.confirmation = ""; 	// Confirmation messages go there.
+	$scope.error = ""; 			// Error messages go there.
 
+	// Check if the user is correctly connected.
+	// Get the user id
 	if (!$window.localStorage.token) {
 		$scope.loggedIn = false;
 		$state.transitionTo('login');
 	} else {
 		$scope.loggedIn = true;
-		userId = $window.localStorage.token;
+		$scope.userId = $window.localStorage.token;
 	}
 	
+	// Filters for the patient list
 	$scope.patientsNameFilter = "";
-
-	$scope.newPatient = {
-		firstname : "",
-		lastname : "",
-		gender : "F",
-		age : 20
+	
+	$scope.patientsGenderFilter = {
+			women: true,
+			men: true
 	};
-
+	
+	/**
+	 * Load the user's patient list from the database.
+	 */
 	$scope.loadPatientList = function() {
-		DBService.findPatients(userId, function(err, patients) {
+		DBService.findPatients($scope.userId, function(err, patients) {
 			if (!err) {
 				$scope.patients = patients;
 				$scope.$apply();
@@ -33,26 +39,78 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 			}
 		});
 	};
-
+	
 	$scope.loadPatientList();
-
-	$scope.openModal = function(){
-		$("#patientModal").modal() 
-		$scope.$apply();
+		
+	/**
+	 * Compute the age of the patient from his birthdate.
+	 */
+	$scope.age = function(birthdate){
+		return Utils.calculateAge(birthdate);
 	};
 	
-	$scope.createNewPatient = function() {
-		DBService.createPatient(userId, $scope.newPatient.firstname,
-			$scope.newPatient.lastname, $scope.newPatient.gender,
-			$scope.newPatient.age, function(err, savedPatient) {
-				if (!err) {
-					$scope.loadPatientList();
-					$('#patientModal').modal('hide');
-				} else {
-					$scope.error = "Une erreur a été rencontrée lors de"
-							+ " la création du nouveau patient. (Erreur : "
-							+ err + ")";
-				}
+	/**
+	 * Manually open the modal containing the patient creation form.
+	 */
+	$scope.openModal = function(){
+		$("#patientModal").modal();
+	};
+	
+	/**
+	 * Close the error alert
+	 */
+	$scope.closeError = function(){
+		$scope.error = "";
+	};
+	
+	/**
+	 * Close the confirmation alert
+	 */
+	$scope.closeError = function(){
+		$scope.confirmation = "";
+	};
+	
+	/**
+	 * Change the background color of the selected element in the list.
+	 */
+	$scope.bgColor= function(patientId){
+		if($scope.patient){
+			if($scope.patient._id == patientId)
+				return '#e8f5e9';
+			else
+				return 'white';
+		}else{
+			return 'white';
+		}
+	};
+	
+	/**
+	 * Find a specific patient in the list via his id.
+	 */
+	$scope.selectPatient = function(patientId) {
+		var len = $scope.patients.length;
+		for(var i = 0 ; i < len; ++i){
+			if($scope.patients[i]._id == patientId){
+				$scope.patient = $scope.patients[i];
+			}
+		}
+	};
+	
+	/**
+	 * Remove a patient
+	 */
+	$scope.deletePatient = function(patientId){
+		console.log("deleeting");
+		DBService.deletePatient(userId, patientId, function(err, numRemoved){
+			if(!err && numRemoved == 1) {
+				console.log("deleted!");
+				$scope.confirmation = "Le patient a été correctement supprimé.";
+				$scope.loadPatientList();
+				$scope.patient = null;
+			}else{
+				$scope.error = "Une erreur s'est produite lors de" 
+					+ " la suppression du patient. Veuillez réessayer.";
+			}
 		});
 	};
 

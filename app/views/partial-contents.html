@@ -1,68 +1,102 @@
-<!-- ************************** Left List ***************************** -->
+
 <div class="row">
+	<!-- ************************** Left List ***************************** -->
 	<section class="col-md-3">
 		<div class="left-list">
 			<button type="button" class="btn btn-success" data-toggle="modal"
-				data-target="#patientModal" ng-click="openModal()">Nouveau patient</button>
+				data-target="#patientModal" ng-click="openModal()">
+				<span class="glyphicon glyphicon-user"></span> Nouveau patient
+			</button>
 			<h4 class="well well-sm well-green">Mes patients</h4>
-			<input type="text" ng-model="patientsNameFilter">
+			<p>
+				<input type="text" ng-model="patientsNameFilter"
+					placeholder="Filtrer les noms..."> <label
+					class="checkbox-inline"><input type="checkbox" value="F"
+					ng-model="patientsGenderFilter.women" checked>F</label> <label
+					class="checkbox-inline"><input type="checkbox" value="M"
+					ng-model="patientsGenderFilter.men" checked>M</label>
+
+			</p>
 			<ul class="list-group">
-				<a href="#" class="list-group-item" ng-repeat="patient in patients | patientFilter : patientsNameFilter"">
-					{{patient.name.given[0]}} {{patient.name.family[0]}} ({{patient.gender}})</a>
+				<a class="list-group-item"
+					ng-repeat="p in patients | orderBy : 'name.family[0]' | patientFilter : patientsNameFilter | genderFilter : patientsGenderFilter"
+					ng-click="selectPatient(p._id)"
+					ng-style="{'background-color' : bgColor(p._id)}">
+
+					{{p.name.family[0].toUpperCase()}} {{p.name.given[0]}}
+					({{p.gender}}), {{age(p.birthDate)}} ans </a>
 			</ul>
 		</div>
 	</section>
 
 	<!-- *************************** Content ****************************** -->
 
-	<section class="col-md-9">
-
-		<!-- New Patient Modal -->
-
-		<div id="patientModal" class="modal fade" role="dialog">
-			<div class="modal-dialog modal-lg">
-
-				<!-- Modal content-->
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal">&times;</button>
-						<h4 class="modal-title">Créer un nouveau patient</h4>
-					</div>
-					<form data-ng-submit="createNewPatient();">
-						<div class="modal-body">
-							<div class="alert alert-warning" ng-show="error!=''">
-								<a href="#" class="close" aria-label="close"
-									ng-click="closeError()">&times;</a> {{error}}
-							</div>
-							<div class="form-group">
-								<label for="firstname">Prénom:</label> <input type="text"
-									class="form-control" id="firstname" data-ng-model="newPatient.firstname">
-							</div>
-							<div class="form-group">
-								<label for="lastname">Nom:</label> <input type="text"
-									class="form-control" id="lastname" data-ng-model="newPatient.lastname">
-							</div>
-							<div class="radio-inline">
-							  <label><input type="radio" name="gender" data-ng-model="newPatient.gender" value="F">F</label>
-							</div>
-							<div class="radio-inline">
-							  <label><input type="radio" name="gender" data-ng-model="newPatient.gender" value="M">M</label>
-							</div>
-						</div>
-						<div class="modal-footer">
-							<button type="submit" class="btn btn-success">Créer</button>
-							<button type="button" class="btn btn-default"
-								data-dismiss="modal">Annuler</button>
-						</div>
-					</form>
-				</div>
-
-			</div>
+	<section class="col-md-9" style="width: 75%; float: left;">
+		<div class="alert alert-danger" ng-show="error!=''">
+			<a href="#" class="close" aria-label="close" ng-click="closeError()">&times;</a>
+			{{error}}
+		</div>
+		<div class="alert alert-success" ng-show="confirmation!=''">
+			<a href="#" class="close" aria-label="close"
+				ng-click="closeConfirmation()">&times;</a> {{confirmation}}
 		</div>
 
-		<!-- Patient data -->
+		<!-- ******************* New Patient Modal ********************** -->
 
-		<h3>Patient X</h3>
+		<patient-form></patient-form>
+
+		<!-- ********************** Patient data ********************** -->
+
+		<h3 class="well well-sm well-green" ng-show="patient">
+			<button type="button" class="btn btn-danger btn-sm btn-float-right"
+				ng-show="patient" ng-click="deletePatient(patient._id)">
+				<span class="glyphicon glyphicon-trash"></span> Supprimer ce dossier
+				patient
+			</button>
+			{{patient.name.given[0]}} {{patient.name.family[0]}}
+		</h3>
+
+		<div class="panel panel-default" ng-show="patient">
+			<div class="panel-heading">Informations</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-2">
+						<b>Prénom :</b>
+					</div>
+					<div class="col-md-10">{{patient.name.given[0]}}</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Nom :</b>
+					</div>
+					<div class="col-md-10">{{patient.name.family[0]}}</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Âge :</b>
+					</div>
+					<div class="col-md-10">{{age(patient.birthDate)}} ans</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Date de naissance :</b>
+					</div>
+					<div class="col-md-10">{{patient.birthDate| date :
+						"dd-MM-yyyy"}}</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Genre : </b>
+					</div>
+					<div class="col-md-10">{{patient.gender}}</div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<a class="btn btn-info btn-sm"> <span
+					class="glyphicon glyphicon-pencil"></span> Modifier
+				</a>
+			</div>
+		</div>
 
 
 	</section>

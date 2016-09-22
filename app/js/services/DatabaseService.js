@@ -89,9 +89,11 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 			};
 			db.users.findOne(user, next);
 		},
-		createPatient : function(userId, firstname, lastname, gender, age, next) {			
-			var birthday = new Date();
-			birthday.setFullYear(birthday.getFullYear - age);
+		createPatient : function(userId, firstname, lastname, gender, age, birthday, next) {			
+			if(birthday == null){
+				var birthday = new Date();
+				birthday.setFullYear(birthday.getFullYear() - age);
+			}
 			var patient = {
 					name: {
 				        family: [lastname],
@@ -100,12 +102,14 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 				    gender : gender,
 				    birthDate : birthday,
 				    relatedUsers:[userId]
-			}
-			console.log("patient " + JSON.stringify(patient));
+			};
 			db.patients.insert(patient, next);			
 		},
 		findPatients : function(userId, next){
 			db.patients.find({"relatedUsers" : userId}, next);
+		},
+		deletePatient : function(userId, patientId, next) {
+			db.patients.remove({ _id: patientId, "relatedUsers" : userId}, {}, next);
 		}
 	}
 }]);
