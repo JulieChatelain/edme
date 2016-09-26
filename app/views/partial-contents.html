@@ -1,13 +1,12 @@
 
-<div class="row">
+<div class="row" style="height:100%">
 	<!-- ************************** Left List ***************************** -->
-	<section class="col-md-3">
-		<div class="left-list">
-			<button type="button" class="btn btn-success" data-toggle="modal"
-				data-target="#patientModal" ng-click="openModal()">
-				<span class="glyphicon glyphicon-user"></span> Nouveau patient
+	<section class="col-md-3" style="height:100%">
+		<div class="left-list" >
+			<button type="button" class="btn btn-success" style="margin-bottom:10px;" ng-click="createPatient()">
+				<span class="glyphicon glyphicon-user"></span> Nouveau patient {{test}}
 			</button>
-			<h4 class="well well-sm well-green">Mes patients</h4>
+			<!--<h4 class="well well-sm well-green">Mes patients</h4>  -->
 			<p>
 				<input type="text" ng-model="patientsNameFilter"
 					placeholder="Filtrer les noms..."> <label
@@ -31,18 +30,20 @@
 
 	<!-- *************************** Content ****************************** -->
 
-	<section class="col-md-9" style="width: 75%; float: left;">
-		<div class="alert alert-danger" ng-show="error!=''">
-			<a href="#" class="close" aria-label="close" ng-click="closeError()">&times;</a>
+	<section class="col-md-9" style="width: 75%; float: left; height: 100%; overflow-y: auto;">
+		<div id="errorAlert" class="alert alert-danger" ng-show="error!=''">
+			<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
 			{{error}}
 		</div>
-		<div class="alert alert-success" ng-show="confirmation!=''">
-			<a href="#" class="close" aria-label="close"
-				ng-click="closeConfirmation()">&times;</a> {{confirmation}}
+		<div id="confirmAlert" class="alert alert-success" ng-show="confirmation!=''">
+			<button class="close" data-dismiss="alert" aria-label="close">&times;</button> 
+			{{confirmation}}
 		</div>
 
-		<!-- ******************* New Patient Modal ********************** -->
+		<!-- ******************* Modals ********************** -->
 
+
+		<patient-data-form></patient-data-form>
 		<patient-form></patient-form>
 
 		<!-- ********************** Patient data ********************** -->
@@ -57,46 +58,53 @@
 		</h3>
 
 		<div class="panel panel-default" ng-show="patient">
-			<div class="panel-heading">Informations</div>
+			<div class="panel-heading" data-toggle="collapse" data-target="#patientInfos">Informations</div>
+			<div id="patientInfos"  class="panel-collapse">
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-md-2">
-						<b>Prénom :</b>
+						<b>Prénom </b>
 					</div>
 					<div class="col-md-10">{{patient.name.given[0]}}</div>
 				</div>
 				<div class="row">
 					<div class="col-md-2">
-						<b>Nom :</b>
+						<b>Nom </b>
 					</div>
 					<div class="col-md-10">{{patient.name.family[0]}}</div>
 				</div>
 				<div class="row">
 					<div class="col-md-2">
-						<b>Âge :</b>
+						<b>Âge </b>
 					</div>
 					<div class="col-md-10">{{age(patient.birthDate)}} ans</div>
 				</div>
 				<div class="row">
 					<div class="col-md-2">
-						<b>Date de naissance :</b>
+						<b>Date de naissance </b>
 					</div>
 					<div class="col-md-10">{{patient.birthDate| date :
 						"dd-MM-yyyy"}}</div>
 				</div>
 				<div class="row">
 					<div class="col-md-2">
-						<b>Genre : </b>
+						<b>Genre </b>
 					</div>
 					<div class="col-md-10">{{patient.gender}}</div>
 				</div>
 			</div>
 			<div class="panel-footer">
-				<a class="btn btn-info btn-sm"> <span
+				<a class="btn btn-info btn-sm" ng-click="editPatient()"> <span
 					class="glyphicon glyphicon-pencil"></span> Modifier
 				</a>
 			</div>
+			</div>
 		</div>
+		<button type="button" class="btn btn-info btn-block"
+				ng-show="patient" ng-click="addData()">
+				<span class="glyphicon glyphicon-transfer"></span> 
+				Transmettre des données au patient
+		</button>
 
 
 	</section>

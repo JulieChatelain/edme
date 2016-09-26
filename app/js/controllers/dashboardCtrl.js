@@ -31,6 +31,9 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 		DBService.findPatients($scope.userId, function(err, patients) {
 			if (!err) {
 				$scope.patients = patients;
+				if($scope.patient){
+					$scope.selectPatient($scope.patient._id);
+				}
 				$scope.$apply();
 			} else {
 				$scope.error = "Une erreur a été rencontrée lors du"
@@ -48,28 +51,7 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 	$scope.age = function(birthdate){
 		return Utils.calculateAge(birthdate);
 	};
-	
-	/**
-	 * Manually open the modal containing the patient creation form.
-	 */
-	$scope.openModal = function(){
-		$("#patientModal").modal();
-	};
-	
-	/**
-	 * Close the error alert
-	 */
-	$scope.closeError = function(){
-		$scope.error = "";
-	};
-	
-	/**
-	 * Close the confirmation alert
-	 */
-	$scope.closeError = function(){
-		$scope.confirmation = "";
-	};
-	
+			
 	/**
 	 * Change the background color of the selected element in the list.
 	 */

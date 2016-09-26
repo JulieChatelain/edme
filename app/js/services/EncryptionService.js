@@ -17,6 +17,9 @@ app.service('EncryptionService', function() {
 		},
 		salt : function() {
 			return bcrypt.genSaltSync(12);
+		},
+		generateCode : function(){
+			return CryptoJS.lib.WordArray.random(3);
 		}
 	}
 });

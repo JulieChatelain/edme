@@ -5,9 +5,9 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">Créer un nouveau patient</h4>
+				<h4 class="modal-title">{{formInfo.title}}</h4>
 			</div>
-			<form data-ng-submit="createNewPatient();">
+			<form data-ng-submit="savePatient();">
 				<div class="modal-body">
 					<div class="alert alert-warning" ng-show="error!=''">
 						<a href="#" class="close" aria-label="close"
@@ -16,38 +16,38 @@
 					<div class="form-group">
 						<label for="firstname">Prénom:</label> <input type="text"
 							class="form-control" id="firstname"
-							data-ng-model="newPatient.firstname">
+							data-ng-model="patientToEdit.firstname">
 					</div>
 					<div class="form-group">
 						<label for="lastname">Nom:</label> <input type="text"
 							class="form-control" id="lastname"
-							data-ng-model="newPatient.lastname">
+							data-ng-model="patientToEdit.lastname">
 					</div>
 					<div class="radio-inline">
 						<label><input type="radio" name="gender"
-							data-ng-model="newPatient.gender" value="F">F</label>
+							data-ng-model="patientToEdit.gender" value="F">F</label>
 					</div>
 					<div class="radio-inline">
 						<label><input type="radio" name="gender"
-							data-ng-model="newPatient.gender" value="M">M</label>
+							data-ng-model="patientToEdit.gender" value="M">M</label>
 					</div>
 					<div class="row">
 						<div class="col-md-6 form-group">
 							<label for="age">Âge:</label> <input type="number"
 								class="form-control" id="age" min="0" max="140"
-								data-ng-model="newPatient.age"
+								data-ng-model="patientToEdit.age"
 								data-ng-change="adjustBirthDate()">
 						</div>
 						<div class="col-md-6 form-group">
 							<label for="birthDate">Date de naissance:</label> <input
 								type="date" class="form-control" id="birthDate"
-								data-ng-model="newPatient.birthDate"
+								data-ng-model="patientToEdit.birthDate"
 								data-ng-change="adjustAge()">
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" class="btn btn-success">Créer</button>
+					<button type="submit" class="btn btn-success">{{formInfo.submit}}</button>
 					<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
 				</div>
 			</form>

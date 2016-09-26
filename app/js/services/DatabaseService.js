@@ -3,7 +3,7 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 	var Datastore 	= require('nedb')
 	  , path 		= require('path')
 	  , appDataPath = require('nw.gui').App.dataPath
-	  , db 			= {}
+	  , db 			= {};
 	
 
 	db.users = new Datastore({
@@ -13,6 +13,8 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 		corruptAlertThreshold : 0,
 		autoload : true
 	});
+	EncryptionService.generateCode();
+	
 	db.patients = new Datastore({
 		filename : path.join(appDataPath, 'patients.db'),
 		afterSerialization : EncryptionService.encrypt,
@@ -49,32 +51,19 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 		corruptAlertThreshold : 0,
 		autoload : true
 	});
+	db.diagnosticReports = new Datastore({
+		filename : path
+				.join(appDataPath, 'diagnosticReports.db'),
+		afterSerialization : EncryptionService.encrypt,
+		beforeDeserialization : EncryptionService.decrypt,
+		corruptAlertThreshold : 0,
+		autoload : true
+	});
 	
 
 	db.users.ensureIndex({ fieldName: 'login', unique: true });
 
 	return {
-		getDB : function() {
-			return db;
-		},
-		getUsers : function() {
-			return db.users;
-		},
-		getPatients : function() {
-			return db.patients;
-		},
-		getPractitioners : function() {
-			return db.practitioners;
-		},
-		getObservations : function() {
-			return db.observations;
-		},
-		getConditions : function() {
-			return db.conditions;
-		},
-		getDiagnosticOrders : function() {
-			return db.diagnosticOrders;
-		},
 		createUser : function(login, pwd, next) {
 			var user = {
 					login : login,
@@ -95,6 +84,7 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 				birthday.setFullYear(birthday.getFullYear() - age);
 			}
 			var patient = {
+					code: EncryptionService.generateCode(),
 					name: {
 				        family: [lastname],
 				        given: [firstname]
@@ -105,11 +95,92 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 			};
 			db.patients.insert(patient, next);			
 		},
+		updatePatient : function(userId, patientId, firstname, lastname, gender, age, birthday, next){
+			if(birthday == null){
+				var birthday = new Date();
+				birthday.setFullYear(birthday.getFullYear() - age);
+			}
+			var patient = {
+					$set:{
+							name: {
+								family: [lastname],
+								given: [firstname]
+							},
+							gender : gender,
+							birthDate : birthday
+							
+				    	}
+			};
+			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, next);
+		},
 		findPatients : function(userId, next){
 			db.patients.find({"relatedUsers" : userId}, next);
 		},
+		findPatient : function(userId, patientId, next){
+			db.patients.findOne({_id: patientId, "relatedUsers" : userId}, next);
+		},
 		deletePatient : function(userId, patientId, next) {
 			db.patients.remove({ _id: patientId, "relatedUsers" : userId}, {}, next);
+		},
+		createLabResult : function(userId, patient, dataType, value, unit, dateResult, meaning, comments, next){
+			var codeResult = {};
+			switch (dataType){
+				case 'HbA1c' : codeResult = {
+						coding: [{
+				            system: "http://snomed.info/sct",
+				            code: "43396009",
+				            display: "HbA1c - Hemoglobin A1c level"
+				        }],
+				        text: "Niveau de hémoglobine A1c"
+				};break;
+				case 'BNP ' : codeResult = {
+						coding: [{
+				            system: "http://snomed.info/sct",
+				            code: "390917008",
+				            display: "Brain natriuretic peptide level"
+				        }],
+				        text: "Niveau de BNP"
+				}; break;
+				case 'NT-proBNP' : codeResult = {
+						coding: [{
+				            system: "http://snomed.info/sct",
+				            code: "414799001",
+				            display: "N-terminal pro-brain natriuretic peptide level"
+				        }],
+				        text: "Niveau de NT-proBNP"
+				}; break;			
+			}
+			var observation = {
+					 category: {				
+					     coding: [{
+					         system: "http://hl7.org/fhir/observation-category",
+					         code: "laboratory",
+					         display: "Laboratoire"
+					     }],
+					     text: "Résultat de l'analyse au laboratoire"
+					 },
+				    subject: {				
+						reference : patient._id, 
+						display : patient.name.given[0] + " " + patient.name.family[0]
+				    },
+				    issued : dateResult,
+				    valueQuantity: {
+				        value: value,
+				        units: unit
+				    },
+				    code: codeResult,
+				    interpretation: {		
+				        coding: [{
+				            system: "eidmi",
+				            code: (meaning == 'Bon') ? 'OK' : ((meaning == 'A surveiller') ? 'KW' : 'BAD'),
+				            display: meaning
+				        }],
+				        text: meaning
+				    },
+				    comments: comments,
+				};
+			
+			db.observations.insert(observation, next);
 		}
 	}
 }]);

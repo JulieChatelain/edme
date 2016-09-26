@@ -1,9 +1,14 @@
+html{
+	height: 100%;
+}
 body {
 	background-color: #e8f5e9;
+	height: 92%;
+	overflow-y: hidden;
 }
 
 .left-list {
-	overflow: auto;
+	/* overflow: auto;*/
 	height: 100%;
 	width: 100%;
 	padding-left: 5px;
@@ -63,19 +68,32 @@ body {
 	background-color: #1b5e20;
 	border-color: #1b5e20;
 	color: white;
+	margin-top: 0px;
 }
-
+.list-group {
+    max-height: 80%;
+	overflow-y: auto;
+}
 .list-group-item {
 	cursor: pointer; 
+}
+.panel-heading {
+	cursor: pointer;
 }
 
 .btn-float-right {
 	float: right;
 }
 
+.contents {
+	margin-top: 55px;
+	height: 100%
+}
+
 @media ( min-width : 780px) {
 	.col-md-3 {
 		width: 25%;
+		float: left;
 	},
 	.col-md-9 {
 		width: 75%;
@@ -83,9 +101,11 @@ body {
 	},
 	.col-md-1 {
 		width: 8.3%;
+		float: left;
 	},
 	.col-md-11 {
 		width: 91.7%;
+		float: left;
 	}
 }
 
