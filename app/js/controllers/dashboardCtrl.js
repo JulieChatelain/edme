@@ -1,6 +1,6 @@
 app.controller('dashboardCtrl', function($scope, $log, $state, $window,
-		DBService, Utils) {
-
+		DBService, PatientService, Utils) {
+	
 	$scope.userId = "";
 	
 	$scope.confirmation = ""; 	// Confirmation messages go there.
@@ -44,6 +44,19 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 	};
 	
 	$scope.loadPatientList();
+	
+	$scope.loadPatientData = function(userId, patientId) {
+		PatientService.getAllRelatedData(userId, patientId, function(err, patientData){
+			if(!err){
+				$scope.patientData = patientData;
+				$scope.$apply();
+			}
+			else{
+				$scope.error = "Erreur lors du chargenement des données du patient. ("+err+")";
+				$scope.$apply();
+			}
+		});
+	};
 		
 	/**
 	 * Compute the age of the patient from his birthdate.
@@ -67,13 +80,15 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 	};
 	
 	/**
-	 * Find a specific patient in the list via his id.
+	 * Find a specific patient in the list via his id and
+	 * get all his data.
 	 */
 	$scope.selectPatient = function(patientId) {
 		var len = $scope.patients.length;
 		for(var i = 0 ; i < len; ++i){
 			if($scope.patients[i]._id == patientId){
 				$scope.patient = $scope.patients[i];
+				$scope.loadPatientData($scope.userId, patientId);
 			}
 		}
 	};
@@ -81,19 +96,38 @@ app.controller('dashboardCtrl', function($scope, $log, $state, $window,
 	/**
 	 * Remove a patient
 	 */
-	$scope.deletePatient = function(patientId){
-		console.log("deleeting");
-		DBService.deletePatient(userId, patientId, function(err, numRemoved){
-			if(!err && numRemoved == 1) {
-				console.log("deleted!");
-				$scope.confirmation = "Le patient a été correctement supprimé.";
-				$scope.loadPatientList();
-				$scope.patient = null;
-			}else{
-				$scope.error = "Une erreur s'est produite lors de" 
-					+ " la suppression du patient. Veuillez réessayer.";
-			}
-		});
+	$scope.deletePatient = function(){
+		// First, ask for confirmation
+		BootstrapDialog.show({
+            title: 'Supprimer ce dossier?',
+            message: 'Êtes-vous certain de vouloir supprimer ce dossier?'
+            	+ '<br>Il ne pourra pas être récupéré.',
+            buttons: [{
+                label: 'Supprimer',
+                action: function(dialog) {
+                	// then delete it
+            		DBService.deletePatient($scope.userId, $scope.patient._id, function(err, numRemoved){
+            			if(!err && numRemoved == 1) {
+            				$scope.confirmation = "Le patient a été correctement supprimé.";
+            				$scope.loadPatientList();
+            				$scope.patient = null;
+            			}else{
+            				$scope.error = "Une erreur s'est produite lors de" 
+            					+ " la suppression du patient. Veuillez réessayer.";
+            			}
+            		});
+                    dialog.close();
+                },
+                cssClass: 'btn-danger'
+            }, {
+                label: 'Annuler',
+                action: function(dialog){
+                    dialog.close();
+                }
+            }]
+        });
+		
+		
 	};
 
 });

@@ -1,4 +1,4 @@
-app.service('DBService', ['$log','EncryptionService', function($log, EncryptionService) {
+app.service('DBService', ['$log','EncryptionService', 'CodeService', function($log, EncryptionService, CodeService) {
 
 	var Datastore 	= require('nedb')
 	  , path 		= require('path')
@@ -122,41 +122,31 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 		deletePatient : function(userId, patientId, next) {
 			db.patients.remove({ _id: patientId, "relatedUsers" : userId}, {}, next);
 		},
+		findObservations : function(userId, patientId, category, code, date, next) {		
+			
+			var longAgo = new Date();
+			longAgo.setFullYear(longAgo.getFullYear() - 500);
+			
+			date = date || longAgo;
+			
+			if(category && code)
+				db.observations.find({"subject.reference" : patientId, 
+					"category.coding.code" : category, 
+					"code.coding.code" : code, issued: { $gte: date }}, next);
+			else if (category && ! code)
+				db.observations.find({"subject.reference" : patientId,
+					"category.coding.code" : category, 
+					issued: { $gte: date }}, next);
+			else if (!category && code)
+				db.observations.find({"subject.reference" : patientId,
+					"code.coding.code" : code, issued: { $gte: date }}, next);
+			else
+				db.observations.find({"subject.reference" : patientId, issued: { $gte: date }}, next);
+		},
 		createLabResult : function(userId, patient, dataType, value, unit, dateResult, meaning, comments, next){
-			var codeResult = {};
-			switch (dataType){
-				case 'HbA1c' : codeResult = {
-						coding: [{
-				            system: "http://snomed.info/sct",
-				            code: "43396009",
-				            display: "HbA1c - Hemoglobin A1c level"
-				        }],
-				        text: "Niveau de hémoglobine A1c"
-				};break;
-				case 'BNP ' : codeResult = {
-						coding: [{
-				            system: "http://snomed.info/sct",
-				            code: "390917008",
-				            display: "Brain natriuretic peptide level"
-				        }],
-				        text: "Niveau de BNP"
-				}; break;
-				case 'NT-proBNP' : codeResult = {
-						coding: [{
-				            system: "http://snomed.info/sct",
-				            code: "414799001",
-				            display: "N-terminal pro-brain natriuretic peptide level"
-				        }],
-				        text: "Niveau de NT-proBNP"
-				}; break;			
-			}
 			var observation = {
 					 category: {				
-					     coding: [{
-					         system: "http://hl7.org/fhir/observation-category",
-					         code: "laboratory",
-					         display: "Laboratoire"
-					     }],
+					     coding: [CodeService.labResult()],
 					     text: "Résultat de l'analyse au laboratoire"
 					 },
 				    subject: {				
@@ -168,7 +158,7 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 				        value: value,
 				        units: unit
 				    },
-				    code: codeResult,
+				    code: CodeService.findCodeLabResult(dataType),
 				    interpretation: {		
 				        coding: [{
 				            system: "eidmi",
@@ -179,7 +169,6 @@ app.service('DBService', ['$log','EncryptionService', function($log, EncryptionS
 				    },
 				    comments: comments,
 				};
-			
 			db.observations.insert(observation, next);
 		}
 	}

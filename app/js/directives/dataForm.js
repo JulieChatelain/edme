@@ -41,8 +41,11 @@ app.directive("patientDataForm", ['$log','Utils', 'DBService', function($log, Ut
         	};
         	
 
-        	$scope.parseData = function(data){
-        		return JSON.parse(data);
+        	$scope.parseData = function(data){        		
+        		if(data)
+        			return JSON.parse(data);
+        		else
+        			return null;
         	};
         	
         	/**
@@ -58,17 +61,19 @@ app.directive("patientDataForm", ['$log','Utils', 'DBService', function($log, Ut
         					$scope.newData.comments, 
         					function(err, savedData){
 		        				if (!err) {
-		                			console.log("data saved!");
-		    						$('#dataModal').modal('hide');      
-		    						$scope.confirmation = "Les données ont été correctement sauvées.";
+		    						$('#dataModal').modal('hide');    
+		    						$scope.confirmation = "Les données ont été correctement sauvées.";  
+		    						$scope.loadPatientData($scope.userId, $scope.patient._id);
+		    						$scope.$apply();
 		        				}else {
 		    						$scope.error = "Une erreur a été rencontrée lors de"
 										+ " l'ajout de donnée. (Erreur : "
-										+ err + ")";
+										+ err + ")";  
+		    						$scope.$apply();
 		        				}        				
         			});
         		}else{
-        			$scope.error = "Veuillez remplir tous les champs.";
+        			$scope.error = "Veuillez remplir tous les champs.";  
         		}
         	};
         	
