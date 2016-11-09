@@ -97,15 +97,18 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				var birthday = new Date();
 				birthday.setFullYear(birthday.getFullYear() - age);
 			}
+			
 			var patient = {
-					code: EncryptionService.generateCode(),
+					code: ""+EncryptionService.generateCode()+"",
 					name: {
 				        family: [lastname],
 				        given: [firstname]
 				    },
 				    gender : gender,
 				    birthDate : birthday,
-				    relatedUsers:[userId]
+				    relatedUsers:[userId],
+				    shared : false,
+				    hasBeenShared : false
 			};
 			db.patients.insert(patient, next);			
 		},
@@ -121,15 +124,22 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 								given: [firstname]
 							},
 							gender : gender,
-							birthDate : birthday
-							
+							birthDate : birthday							
 				    	}
 			};
-			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, next);
+			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, {}, next);
 		},
 		patientSharing : function(userId, patient, share, savedId, next){
+			var up = {
+					$set:{
+							idOnServer : savedId,
+							shared : share,
+							hasBeenShared : true
+				    	}
+			};
 			
-			var id = savedId;
+			db.patients.update({_id: patient._id, "relatedUsers" : userId}, up, {}, next);
+			
 		},
 		findPatients : function(userId, next){
 			db.patients.find({"relatedUsers" : userId}, next);
@@ -186,8 +196,24 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				        text: meaning
 				    },
 				    comments: comments,
+				    relatedUsers:[userId]
 				};
 			db.observations.insert(observation, next);
+		},
+		deleteObservation : function(userId, id, next){
+			db.observatinos.remove({ _id: id, "relatedUsers" : userId}, {}, next);
+		},
+		observationSharing : function(userId, observation, share, savedId, next){
+			var up = {
+					$set:{
+							idOnServer : savedId,
+							shared : share,
+							hasBeenShared : true
+				    	}
+			};
+			
+			db.observations.update({_id: observation._id, "relatedUsers" : userId}, up, {}, next);
+			
 		}
 	}
 }]);

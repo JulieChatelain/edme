@@ -1,0 +1,70 @@
+<div  class="container">
+
+<div id="errorAlert" class="alert alert-danger" data-ng-show="error!=''">
+	<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
+	{{error}}
+</div>
+<div id="confirmAlert" class="alert alert-success"
+ data-ng-show="confirmation!=''">
+	<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
+	{{confirmation}}
+</div>
+
+<div class="panel panel-primary">
+	<div class="panel-heading">Se connecter au serveur</div>
+	<div class="panel-body">
+
+<!-- ********************************************************************** -->
+<!-- ******************************* Register ***************************** -->
+
+		<form data-ng-submit="register();" data-ng-show="!user.serverEmail">
+			
+			<div class="form-group">
+				<label for="login">Email:</label> <input type="text"
+					class="form-control" id="login" data-ng-model="serverEmail">
+			</div>
+			<div class="form-group">
+				<label for="pwd">Mot de passe:</label> <input type="password"
+					class="form-control" id="pwd" data-ng-model="serverPassword">
+			</div>
+			<div class="form-group">
+				<label for="firstname">Prénom:</label> <input type="text"
+					class="form-control" id="firstname" data-ng-model="givenName">
+			</div>
+			<div class="form-group">
+				<label for="name">Prénom:</label> <input type="text"
+					class="form-control" id="name" data-ng-model="familyName">
+			</div>
+			<button type="submit" class="btn btn-primary">S'enregistrer sur le serveur</button>
+		</form>
+	
+
+<!-- ********************************************************************** -->
+<!-- ********************************** Login ***************************** -->
+
+	<div class="row" data-ng-show="user.serverEmail">
+        <div class="col-md-4" style="font-weight: bold;">Email</div>
+        <div class="col-md-8" style="overflow: hidden;text-overflow: ellipsis;">{{user.serverEmail}}</div>
+    </div>
+    <div class="row" style="padding-top: 10px;" data-ng-show="user.serverEmail">
+        <div class="col-md-4" style="font-weight: bold;">Mot de passe </div>
+        <div class="col-md-8" style="overflow: hidden;text-overflow: ellipsis;">{{user.serverPassword}}                 
+        </div>
+    </div>
+    <div class="row" style="padding-top: 10px;" data-ng-show="user.serverEmail">
+        <div class="col-md-4" style="font-weight: bold;">Prénom</div>
+        <div class="col-md-8" style="overflow: hidden;text-overflow: ellipsis;">{{user.givenName}}</div>
+    </div>
+    <div class="row" style="padding-top: 10px;" data-ng-show="user.serverEmail">
+        <div class="col-md-4" style="font-weight: bold;">Nom</div>
+        <div class="col-md-8" style="overflow: hidden;text-overflow: ellipsis;">{{user.familyName}}</div>
+    </div>
+
+	</div>
+	<div class="panel-footer" data-ng-show="user.serverEmail">
+		<a class="btn btn-info btn-md" data-ng-click="login()"> <span
+			class="glyphicon glyphicon-pencil"></span> Reinitialiser la connexion
+		</a>
+	</div>
+</div>
+</div>
