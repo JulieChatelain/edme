@@ -78,6 +78,20 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 			};
 			db.users.findOne(user, next);
 		},
+		findUserById  : function(id, next) {
+			var user = {
+					_id : id
+			};
+			db.users.findOne(user, next);
+		},
+		addServerAccount : function(user, serverPass, serverEmail, practId, name, firstname, next){
+			user.serverEmail = serverEmail;
+			user.serverPassword = serverPass;
+			user.practitionerId = practId;
+			user.familyName = name;
+			user.givenName = firstname;
+			db.users.update({ _id: user._id }, user, {}, next);
+		},
 		createPatient : function(userId, firstname, lastname, gender, age, birthday, next) {			
 			if(birthday == null){
 				var birthday = new Date();
@@ -112,6 +126,10 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				    	}
 			};
 			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, next);
+		},
+		patientSharing : function(userId, patient, share, savedId, next){
+			
+			var id = savedId;
 		},
 		findPatients : function(userId, next){
 			db.patients.find({"relatedUsers" : userId}, next);

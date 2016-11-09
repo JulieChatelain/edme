@@ -1,5 +1,5 @@
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 
 	$urlRouterProvider.otherwise('/login');
 
@@ -10,7 +10,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
 		views : {
 
 			'' : {
-				templateUrl : 'dashboard.html'
+				templateUrl : 'mainView.html'
 			},
 
 			'menu@login' : {
@@ -30,7 +30,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
 		views : {
 
 			'' : {
-				templateUrl : 'dashboard.html'
+				templateUrl : 'mainView.html'
 			},
 
 			'menu@register' : {
@@ -44,17 +44,37 @@ app.config(function($stateProvider, $urlRouterProvider) {
 			}
 		}
 	})
+	
+	.state('parameters', {
+		url : '/parameters',
+		views : {
+
+			'' : {
+				templateUrl : 'mainView.html'
+			},
+
+			'menu@parameters' : {
+				templateUrl : 'partial-menu.html',
+				controller : 'menuCtrl'
+			},
+
+			'contents@parameters' : {
+				templateUrl : 'partial-parameters.html',
+				controller : 'parametersCtrl'
+			}
+		}
+	})
 	.state('dashboard', {
 		url : '/dashboard',
 		views : {
 
 			'' : {
-				templateUrl : 'dashboard.html'
+				templateUrl : 'mainView.html'
 			},
 
 			'contents@dashboard' : {
-				templateUrl : 'partial-contents.html',
-				controller : 'dashboardCtrl'
+				templateUrl : 'partial-dashboard.html',
+				controller : 'patientsCtrl'
 			},
 
 			'menu@dashboard' : {
@@ -63,6 +83,46 @@ app.config(function($stateProvider, $urlRouterProvider) {
 			}
 		}
 
+	})
+	.state('patients', {
+		url : '/patients',
+		views : {
+
+			'' : {
+				templateUrl : 'mainView.html'
+			},
+
+			'contents@patients' : {
+				templateUrl : 'partial-patients.html',
+				controller : 'patientsCtrl'
+			},
+
+			'menu@patients' : {
+				templateUrl : 'partial-menu.html',
+				controller : 'menuCtrl'
+			}
+		}
+
 	});
+	
+	$httpProvider.interceptors.push(['$q', '$log', '$window', function($q, $log, $window) {
+        return {
+            'request': function (config) {
+                config.headers = config.headers || {};
+                if ($window.localStorage.serverToken) {
+                	config.headers['x-access-token'] = $window.localStorage.serverToken;
+                }
+                return config;
+            },
+            'responseError': function(response) {
+                if(response.status === 401 || response.status === 403) {
+                    
+                }
+                return $q.reject(response);
+            }
+        };
+    }]);
+
+
 
 });
