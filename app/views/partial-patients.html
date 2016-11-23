@@ -165,43 +165,43 @@
 				<table class="table table-striped">
 					<thead>
 						<tr>
-							<th>Date</th>
+							<th class="fit">Date</th>
 							<th>Type</th>
-							<th>Valeur</th>
+							<th class="fit">Valeur</th>
 							<th>Commentaire</th>
-							<th></th>
-							<th data-ng-show="patient.hasBeenShared"></th>
+							<th class="fit"></th>
+							<th class="fit" data-ng-show="patient.hasBeenShared"></th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr
 							data-ng-repeat="result in patientData.labResult | orderBy: '-issued' | limitTo : 10">
-							<td class="col-md-3">{{result.issued | date :
+							<td class="fit">{{result.issued | date :
 								"dd-MM-yyyy"}}</td>
 							<td>{{result.code.text}}</td>
-							<td>{{result.valueQuantity.value}}
+							<td class="fit">{{result.valueQuantity.value}}
 								{{result.valueQuantity.units}}</td>
 							<td class="col-md-4">{{result.comments}}</td>
 							<td><button
-									class="btn btn-danger btn-xs glyphicon glyphicon-remove"
+									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
 									data-ng-click="deleteLabResult(result._id)"></button>
 							</td>
 							<td data-ng-show="patient.hasBeenShared && !result.shared && !result.hasBeenShared"><button
-									class="btn btn-default btn-xs"
+									class="btn btn-default btn-xs fit"
 									data-ng-click="shareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud-upload"></span>
 									Partager
 									</button>
 							</td>
 							<td data-ng-show="patient.hasBeenShared && !result.shared && result.hasBeenShared"><button
-									class="btn btn-default btn-xs"
+									class="btn btn-default btn-xs fit"
 									data-ng-click="shareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud-upload"></span>
 									Re-partager
 									</button>
 							</td>
 							<td data-ng-show="patient.hasBeenShared && result.shared"><button
-									class="btn btn-default btn-xs"
+									class="btn btn-default btn-xs fit"
 									data-ng-click="unshareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud"></span>
 									Stop partage

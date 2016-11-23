@@ -111,7 +111,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 			RestService.sendPatientRecord($scope.user, $scope.patient, function(success, message, savedId){
 				if(success){
 					var id = savedId.split("/");
-					DBService.patientSharing($scope.userId, $scope.patient, true, id[1], function(err){
+					DBService.patientSharing($scope.userId, $scope.patient, true
+							, id[1], new Date(), function(err){
 						if(err){
 							$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
 							$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
@@ -129,7 +130,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				}
 			});				
 		else
-			DBService.patientSharing($scope.userId, $scope.patient, true, $scope.patient.idOnServer, function(err){
+			DBService.patientSharing($scope.userId, $scope.patient, true
+					, $scope.patient.idOnServer, $scope.patient.lastShared, function(err){
 				if(err){
 					$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
 					$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
@@ -146,7 +148,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	 * Stops sharing the patient information with the server
 	 */
 	$scope.unsharePatientInfo = function(){
-		DBService.patientSharing($scope.userId, $scope.patient, false, $scope.patient.idOnServer, function(err, numReplaced){
+		DBService.patientSharing($scope.userId, $scope.patient, false
+				, $scope.patient.idOnServer, $scope.patient.lastShared, function(err, numReplaced){
 			if(err){
 				$scope.error = "L'opération a échoué. Vérifiez que vous êtes bien connecté au serveur.";
 				$scope.patient.shared = true;
@@ -253,7 +256,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 			RestService.sendObservation($scope.user, $scope.patient, result, function(success, message, savedId){
 				if(success){
 					var id = savedId.split("/");
-					DBService.observationSharing($scope.userId, result, true, id[1], function(err){
+					DBService.observationSharing($scope.userId, result, true
+							, id[1], new Date(), function(err){
 						if(err){
 							$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
 							$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
@@ -271,7 +275,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				}
 			});	
 		else
-			DBService.observationSharing($scope.userId, result, true, result.idOnServer, function(err){
+			DBService.observationSharing($scope.userId, result, true
+					, result.idOnServer, result.lastShared, function(err){
 				if(err){
 					$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
 					$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
@@ -288,7 +293,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	 * Stop sharing the result 
 	 */
 	$scope.unshareLabResult = function(result){
-		DBService.observationSharing($scope.userId, result._id, false, result.idOnServer, function(err){
+		DBService.observationSharing($scope.userId, result._id, false
+				, result.idOnServer, result.lastShared, function(err){
 			if(err){
 				$scope.error = "L'opération a échoué. Vérifiez que vous êtes bien connecté au serveur.";
 				result.shared = true;

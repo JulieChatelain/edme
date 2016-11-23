@@ -90,6 +90,13 @@ body {
 	height: 100%
 }
 
+.table td.fit, 
+.table th.fit {
+    white-space: nowrap;
+    width: 1%;
+    max-width: 200px;
+}
+
 @media ( min-width : 780px) {
 	.col-md-3 {
 		width: 25%;

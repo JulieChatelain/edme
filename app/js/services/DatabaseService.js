@@ -13,6 +13,7 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 		corruptAlertThreshold : 0,
 		autoload : true
 	});
+	
 	EncryptionService.generateCode();
 	
 	db.patients = new Datastore({
@@ -108,7 +109,8 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				    birthDate : birthday,
 				    relatedUsers:[userId],
 				    shared : false,
-				    hasBeenShared : false
+				    hasBeenShared : false,
+					lastUpdated : new Date()
 			};
 			db.patients.insert(patient, next);			
 		},
@@ -124,18 +126,20 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 								given: [firstname]
 							},
 							gender : gender,
-							birthDate : birthday							
+							birthDate : birthday,
+							lastUpdated : new Date()
 				    	}
 			};
 			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, {}, next);
 		},
-		patientSharing : function(userId, patient, share, id, next){
+		patientSharing : function(userId, patient, share, id, lastShared, next){
 			var up = {
 					$set:{
 							idOnServer : id,
 							shared : share,
 							hasBeenShared : true,
-							
+							startShare = new Date(),
+							lastShared = lastShared
 				    	}
 			};
 			
@@ -197,20 +201,23 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				        text: meaning
 				    },
 				    comments: comments,
-				    relatedUsers:[userId]
+				    relatedUsers:[userId],
+					lastUpdated : new Date()
 				};
 			db.observations.insert(observation, next);
 		},
 		deleteObservation : function(userId, id, next){
 			db.observations.remove({ _id: id, "relatedUsers" : userId}, {}, next);
 		},
-		observationSharing : function(userId, observation, share, id, next){
+		observationSharing : function(userId, observation, share, id, lastShared, next){
 			
 			var up = {
 					$set:{
 							idOnServer : id,
 							shared : share,
 							hasBeenShared : true
+							startShare = new Date(),
+							lastShared = lastShared
 				    	}
 			};
 			

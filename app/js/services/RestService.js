@@ -38,6 +38,16 @@ app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR)
     			next(res.data.success, res.data.message, res.data.id)
     		});
     	},
+    	updateResource: function(user, patient, resource, resourceType, next){
+    		switch(resourceType){
+    		case 'Observation': FHIR.observation(user, patient, resource); break;
+    		case 'Patient': FHIR.patient(user, patient); break;
+    		}
+    		$http.post(url + '/rest/patientId/' + patient.idOnServer 
+    				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
+    			next(res.data.success, res.data.message)
+    		});
+    	},
         patients: function(next) {
             $http.get(url + '/rest/Patient').then(next);
         },
