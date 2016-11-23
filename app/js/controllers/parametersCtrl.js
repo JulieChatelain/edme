@@ -48,8 +48,9 @@ app.controller('parametersCtrl', function ($scope, $log, $state, $window, RestSe
 				$scope.error = "Le mot de passe doit faire au moins 8 caractères.";
 			}else{
 				
-				RestService.register($scope.serverEmail, $scope.serverPassword
-						, $scope.givenName, $scope.familyName, function(success, message, userOnServer, token){
+				RestService.register($scope.serverPassword, $scope.serverEmail
+						, $scope.givenName, $scope.familyName
+						, function(success, message, userOnServer, token){
 					
 					if(success){
 						$window.localStorage.serverToken = token;
@@ -80,15 +81,14 @@ app.controller('parametersCtrl', function ($scope, $log, $state, $window, RestSe
 	};
 	
 	$scope.login = function(){
-		RestService.register($scope.serverPassword, $scope.serverEmail, function(success, message, userOnServer, token){			
+		RestService.login($scope.serverPassword, $scope.serverEmail, function(success, message, userOnServer, token){			
 			if(success){
 				$window.localStorage.serverToken = token;
 				$scope.serverConnection = true;
 				$scope.confirmation = "La connexion a été réinitialisée.";
 			}else{
 				$log.debug(message);
-				$scope.error = message;
-				$scope.$apply();							
+				$scope.error = message;					
 			}
 		});
 	};

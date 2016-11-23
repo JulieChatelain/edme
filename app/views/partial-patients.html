@@ -41,6 +41,9 @@
 
 	<section class="col-md-9"
 		style="width: 75%; float: left; height: 100%; overflow-y: auto;">
+		
+<!-- ******************* Error and confirmation messages ************** -->
+		
 		<div id="errorAlert" class="alert alert-danger" data-ng-show="error!=''">
 			<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
 			{{error}}
@@ -51,7 +54,7 @@
 			{{confirmation}}
 		</div>
 
-		<!-- ******************* Modals ********************** -->
+<!-- ******************************* Modals *************************** -->
 
 
 		<patient-data-form></patient-data-form>
@@ -64,17 +67,23 @@
 
 		<h3 class="well well-sm well-green" data-ng-show="patient">
 			<button type="button" class="btn btn-danger btn-sm btn-float-right"
-			 data-ng-show="patient" data-ng-click="deletePatient()">
+			 data-ng-show="patient" data-ng-click="deletePatient()"
+			 style="border:2px solid white;">
 				<span class="glyphicon glyphicon-trash"></span> Supprimer ce dossier
 				patient
 			</button>
 			{{patient.name.given[0]}} {{patient.name.family[0]}}
 		</h3>
 
-		<div class="panel panel-default" data-ng-show="patient">
-			<div class="panel-heading" data-toggle="collapse"
-				data-target="#patientInfos">Informations</div>
-			<div id="patientInfos" class="panel-collapse">
+		<div class="panel panel-default" data-ng-show="patient" data-ng-init="collapseInfos=false">
+			<div class="panel-heading"> 
+				<span class="glyphicon glyphicon-collapse-down" data-toggle="collapse"
+				data-target="#patientInfos" data-ng-show="!collapseInfos" data-ng-click="collapseInfos = !collapseInfos"></span> 
+				<span class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientInfos" data-ng-show="collapseInfos" data-ng-click="collapseInfos = !collapseInfos"></span> 
+				 Informations
+				</div>
+			<div id="patientInfos" class="panel-collapse collapse in">
 				<div class="panel-body">
 					<div class="row">
 						<div class="col-md-2">
@@ -116,10 +125,14 @@
 			</div>
 		</div>
 
-		<div class="panel panel-default" data-ng-show="patient">
-			<div class="panel-heading" data-toggle="collapse"
-				data-target="#patientData">Résultats du laboratoire</div>
-			<div id="patientData" class="panel-collapse">
+		<div class="panel panel-default" data-ng-show="patient" data-ng-init="collapseData=false">
+			<div class="panel-heading"> 
+				<span class="glyphicon glyphicon-collapse-down" data-toggle="collapse"
+				data-target="#patientData" data-ng-show="!collapseData" data-ng-click="collapseData = !collapseData"></span> 
+				<span class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientData" data-ng-show="collapseData" data-ng-click="collapseData = !collapseData"></span> 
+				Résultats du laboratoire</div>
+			<div id="patientData" class="panel-collapse collapse in">
 				<div class="panel-body">
 					<table class="table table-striped">
 						<thead>

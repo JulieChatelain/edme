@@ -201,7 +201,7 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 			db.observations.insert(observation, next);
 		},
 		deleteObservation : function(userId, id, next){
-			db.observatinos.remove({ _id: id, "relatedUsers" : userId}, {}, next);
+			db.observations.remove({ _id: id, "relatedUsers" : userId}, {}, next);
 		},
 		observationSharing : function(userId, observation, share, savedId, next){
 			var up = {
