@@ -4,166 +4,221 @@
 <!-- ****************************************************************** -->
 <!-- ************************** Left List ***************************** -->
 <!-- ****************************************************************** -->
-	
-	<section class="col-md-3" style="height: 100%">
-		<div class="left-list">
-			<button type="button" class="btn btn-info"
-				style="margin-bottom: 10px;" data-ng-click="createPatient()">
-				<span class="glyphicon glyphicon-user"></span> Nouveau patient
-				{{test}}
-			</button>
-			<!--<h4 class="well well-sm well-green">Mes patients</h4>  -->
-			<p>
-				<input type="text" data-ng-model="patientsNameFilter"
-					placeholder="Filtrer les noms..."> <br>
-				Genre : 
-				<label class="checkbox-inline"><input type="checkbox" value="F"
-			 data-ng-model="patientsGenderFilter.women" checked>F</label> <label
+
+<section class="col-md-3" style="height: 100%">
+	<div class="left-list">
+		<button type="button" class="btn btn-info"
+			style="margin-bottom: 10px;" data-ng-click="createPatient()">
+			<span class="glyphicon glyphicon-user"></span> Nouveau patient
+			{{test}}
+		</button>
+		<!--<h4 class="well well-sm well-green">Mes patients</h4>  -->
+		<p>
+			<input type="text" data-ng-model="patientsNameFilter"
+				placeholder="Filtrer les noms..."> <br> Genre : <label
+				class="checkbox-inline"><input type="checkbox" value="F"
+				data-ng-model="patientsGenderFilter.women" checked>F</label> <label
 				class="checkbox-inline"><input type="checkbox" value="M"
-			 data-ng-model="patientsGenderFilter.men" checked>M</label>
+				data-ng-model="patientsGenderFilter.men" checked>M</label>
 
-			</p>
-			<ul class="list-group">
-				<a class="list-group-item"
-				 data-ng-repeat="p in patients | orderBy : 'name.family[0]' | patientFilter : patientsNameFilter | genderFilter : patientsGenderFilter"
-				 data-ng-click="selectPatient(p._id)"
-				 data-ng-style="{'background-color' : bgColor(p._id)}">
+		</p>
+		<ul class="list-group">
+			<a class="list-group-item"
+				data-ng-repeat="p in patients | orderBy : 'name.family[0]' | patientFilter : patientsNameFilter | genderFilter : patientsGenderFilter"
+				data-ng-click="selectPatient(p._id)"
+				data-ng-style="{'background-color' : bgColor(p._id)}">
 
-					{{p.name.family[0].toUpperCase()}} {{p.name.given[0]}}
-					({{p.gender}}), {{age(p.birthDate)}} ans </a>
-			</ul>
-		</div>
-	</section>
+				{{p.name.family[0].toUpperCase()}} {{p.name.given[0]}}
+				({{p.gender}}), {{age(p.birthDate)}} ans </a>
+		</ul>
+	</div>
+</section>
 
 <!-- ****************************************************************** -->
 <!-- *************************** Content ****************************** -->
 <!-- ****************************************************************** -->
 
-	<section class="col-md-9"
-		style="width: 75%; float: left; height: 100%; overflow-y: auto;">
-		
-<!-- ******************* Error and confirmation messages ************** -->
-		
-		<div id="errorAlert" class="alert alert-danger" data-ng-show="error!=''">
-			<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
-			{{error}}
-		</div>
-		<div id="confirmAlert" class="alert alert-success"
-		 data-ng-show="confirmation!=''">
-			<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
-			{{confirmation}}
-		</div>
+<section class="col-md-9"
+	style="width: 75%; float: left; height: 100%; overflow-y: auto;">
 
-<!-- ******************************* Modals *************************** -->
+	<!-- ******************* Error and confirmation messages ************** -->
 
+	<div id="errorAlert" class="alert alert-danger"
+		data-ng-show="error!=''">
+		<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
+		{{error}}
+	</div>
+	<div id="confirmAlert" class="alert alert-success"
+		data-ng-show="confirmation!=''">
+		<button class="close" data-dismiss="alert" aria-label="close">&times;</button>
+		{{confirmation}}
+	</div>
 
-		<patient-data-form></patient-data-form>
-		<patient-form></patient-form>
+	<!-- ******************************* Modals *************************** -->
 
 
-<!-- ****************************************************************** -->
-<!-- ************************** Patient data ************************** -->
-<!-- ****************************************************************** -->
+	<patient-data-form></patient-data-form>
+	<patient-form></patient-form>
 
-		<h3 class="well well-sm well-green" data-ng-show="patient">
-			<button type="button" class="btn btn-danger btn-sm btn-float-right"
-			 data-ng-show="patient" data-ng-click="deletePatient()"
-			 style="border:2px solid white;">
-				<span class="glyphicon glyphicon-trash"></span> Supprimer ce dossier
-				patient
+
+	<!-- ****************************************************************** -->
+	<!-- ************************** Patient data ************************** -->
+	<!-- ****************************************************************** -->
+
+	<h3 class="well well-sm well-green" data-ng-show="patient">
+		<button type="button" class="btn btn-danger btn-xs btn-float-right"
+			data-ng-show="patient" data-ng-click="deletePatient()"
+			style="border: 2px solid white;">
+			<span class="glyphicon glyphicon-trash"></span> Supprimer ce dossier
+			patient
+		</button>
+		{{patient.name.given[0]}} {{patient.name.family[0]}}
+	</h3>
+
+	<div class="panel panel-default" data-ng-show="patient"
+		data-ng-init="collapseInfos=false">
+		<div class="panel-heading">
+			<span class="glyphicon glyphicon-collapse-down"
+				data-toggle="collapse" data-target="#patientInfos"
+				data-ng-show="!collapseInfos"
+				data-ng-click="collapseInfos = !collapseInfos"></span> <span
+				class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientInfos" data-ng-show="collapseInfos"
+				data-ng-click="collapseInfos = !collapseInfos"></span> Informations
+
+			<button type="button" class="btn btn-default btn-xs btn-float-right"
+				data-ng-show="patient && !patient.shared && !patient.hasBeenShared"
+				data-ng-click="sharePatientInfo()">
+				<span class="glyphicon glyphicon-cloud-upload"></span> Partager
 			</button>
-			{{patient.name.given[0]}} {{patient.name.family[0]}}
-		</h3>
 
-		<div class="panel panel-default" data-ng-show="patient" data-ng-init="collapseInfos=false">
-			<div class="panel-heading"> 
-				<span class="glyphicon glyphicon-collapse-down" data-toggle="collapse"
-				data-target="#patientInfos" data-ng-show="!collapseInfos" data-ng-click="collapseInfos = !collapseInfos"></span> 
-				<span class="glyphicon glyphicon-expand" data-toggle="collapse"
-				data-target="#patientInfos" data-ng-show="collapseInfos" data-ng-click="collapseInfos = !collapseInfos"></span> 
-				 Informations
+			<button type="button" class="btn btn-default btn-xs btn-float-right"
+				data-ng-show="patient && !patient.shared && patient.hasBeenShared"
+				data-ng-click="sharePatientInfo()">
+				<span class="glyphicon glyphicon-cloud-upload"></span> Recommencer
+				partage
+			</button>
+
+			<button type="button" class="btn btn-default btn-xs btn-float-right"
+				data-ng-show="patient && patient.shared"
+				data-ng-click="unsharePatientInfo()">
+				<span class="glyphicon glyphicon-cloud"></span> Stop partage
+			</button>
+
+		</div>
+		<div id="patientInfos" class="panel-collapse collapse in">
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-2">
+						<b>Prénom </b>
+					</div>
+					<div class="col-md-10">{{patient.name.given[0]}}</div>
 				</div>
-			<div id="patientInfos" class="panel-collapse collapse in">
-				<div class="panel-body">
-					<div class="row">
-						<div class="col-md-2">
-							<b>Prénom </b>
-						</div>
-						<div class="col-md-10">{{patient.name.given[0]}}</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Nom </b>
 					</div>
-					<div class="row">
-						<div class="col-md-2">
-							<b>Nom </b>
-						</div>
-						<div class="col-md-10">{{patient.name.family[0]}}</div>
-					</div>
-					<div class="row">
-						<div class="col-md-2">
-							<b>Âge </b>
-						</div>
-						<div class="col-md-10">{{age(patient.birthDate)}} ans</div>
-					</div>
-					<div class="row">
-						<div class="col-md-2">
-							<b>Date de naissance </b>
-						</div>
-						<div class="col-md-10">{{patient.birthDate| date :
-							"dd-MM-yyyy"}}</div>
-					</div>
-					<div class="row">
-						<div class="col-md-2">
-							<b>Genre </b>
-						</div>
-						<div class="col-md-10">{{patient.gender}}</div>
-					</div>
+					<div class="col-md-10">{{patient.name.family[0]}}</div>
 				</div>
-				<div class="panel-footer">
-					<a class="btn btn-info btn-sm" data-ng-click="editPatient()"> <span
-						class="glyphicon glyphicon-pencil"></span> Modifier
-					</a>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Âge </b>
+					</div>
+					<div class="col-md-10">{{age(patient.birthDate)}} ans</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Date de naissance </b>
+					</div>
+					<div class="col-md-10">{{patient.birthDate| date :
+						"dd-MM-yyyy"}}</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<b>Genre </b>
+					</div>
+					<div class="col-md-10">{{patient.gender}}</div>
 				</div>
 			</div>
-		</div>
-
-		<div class="panel panel-default" data-ng-show="patient" data-ng-init="collapseData=false">
-			<div class="panel-heading"> 
-				<span class="glyphicon glyphicon-collapse-down" data-toggle="collapse"
-				data-target="#patientData" data-ng-show="!collapseData" data-ng-click="collapseData = !collapseData"></span> 
-				<span class="glyphicon glyphicon-expand" data-toggle="collapse"
-				data-target="#patientData" data-ng-show="collapseData" data-ng-click="collapseData = !collapseData"></span> 
-				Résultats du laboratoire</div>
-			<div id="patientData" class="panel-collapse collapse in">
-				<div class="panel-body">
-					<table class="table table-striped">
-						<thead>
-							<tr>
-								<th>Date</th>
-								<th>Type</th>
-								<th>Valeur</th>
-								<th>Commentaire</th>
-								<th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-							 data-ng-repeat="result in patientData.labResult | orderBy: '-issued' | limitTo : 10">
-								<td class="col-md-3">{{result.issued | date : "dd-MM-yyyy"}}</td>
-								<td>{{result.code.text}}</td>
-								<td>{{result.valueQuantity.value}} {{result.valueQuantity.units}}</td>
-								<td class="col-md-4">{{result.comments}}</td>
-								<td><button class="btn btn-danger btn-sm glyphicon glyphicon-remove" data-ng-click="deleteLabResult(result._id)"></button></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="panel-footer">
-					<button type="button" class="btn btn-info"
-					 data-ng-click="addData()">
-					    <span class="glyphicon glyphicon-plus"></span >Ajouter un résultat
-					</button>
-				</div>
+			<div class="panel-footer">
+				<a class="btn btn-info btn-xs" data-ng-click="editPatient()"> <span
+					class="glyphicon glyphicon-pencil"></span> Modifier
+				</a>
 			</div>
 		</div>
+	</div>
 
-	</section>
+	<div class="panel panel-default" data-ng-show="patient"
+		data-ng-init="collapseData=false">
+		<div class="panel-heading">
+			<span class="glyphicon glyphicon-collapse-down"
+				data-toggle="collapse" data-target="#patientData"
+				data-ng-show="!collapseData"
+				data-ng-click="collapseData = !collapseData"></span> <span
+				class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientData" data-ng-show="collapseData"
+				data-ng-click="collapseData = !collapseData"></span> Résultats du
+			laboratoire
+		</div>
+		<div id="patientData" class="panel-collapse collapse in">
+			<div class="panel-body">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Type</th>
+							<th>Valeur</th>
+							<th>Commentaire</th>
+							<th></th>
+							<th data-ng-show="patient.hasBeenShared"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							data-ng-repeat="result in patientData.labResult | orderBy: '-issued' | limitTo : 10">
+							<td class="col-md-3">{{result.issued | date :
+								"dd-MM-yyyy"}}</td>
+							<td>{{result.code.text}}</td>
+							<td>{{result.valueQuantity.value}}
+								{{result.valueQuantity.units}}</td>
+							<td class="col-md-4">{{result.comments}}</td>
+							<td><button
+									class="btn btn-danger btn-xs glyphicon glyphicon-remove"
+									data-ng-click="deleteLabResult(result._id)"></button>
+							</td>
+							<td data-ng-show="patient.hasBeenShared && !result.shared && !result.hasBeenShared"><button
+									class="btn btn-default btn-xs"
+									data-ng-click="shareLabResult(result)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Partager
+									</button>
+							</td>
+							<td data-ng-show="patient.hasBeenShared && !result.shared && result.hasBeenShared"><button
+									class="btn btn-default btn-xs"
+									data-ng-click="shareLabResult(result)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Re-partager
+									</button>
+							</td>
+							<td data-ng-show="patient.hasBeenShared && result.shared"><button
+									class="btn btn-default btn-xs"
+									data-ng-click="unshareLabResult(result)">
+									<span class="glyphicon glyphicon-cloud"></span>
+									Stop partage
+									</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="panel-footer">
+				<button type="button" class="btn btn-info"
+					data-ng-click="addData()">
+					<span class="glyphicon glyphicon-plus"></span>Ajouter un résultat
+				</button>
+			</div>
+		</div>
+	</div>
+
+</section>
 </div>

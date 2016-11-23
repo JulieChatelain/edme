@@ -129,12 +129,13 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 			};
 			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient, {}, next);
 		},
-		patientSharing : function(userId, patient, share, savedId, next){
+		patientSharing : function(userId, patient, share, id, next){
 			var up = {
 					$set:{
-							idOnServer : savedId,
+							idOnServer : id,
 							shared : share,
-							hasBeenShared : true
+							hasBeenShared : true,
+							
 				    	}
 			};
 			
@@ -203,10 +204,11 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 		deleteObservation : function(userId, id, next){
 			db.observations.remove({ _id: id, "relatedUsers" : userId}, {}, next);
 		},
-		observationSharing : function(userId, observation, share, savedId, next){
+		observationSharing : function(userId, observation, share, id, next){
+			
 			var up = {
 					$set:{
-							idOnServer : savedId,
+							idOnServer : id,
 							shared : share,
 							hasBeenShared : true
 				    	}
