@@ -1,4 +1,4 @@
-app.directive("patientForm", ['$log','Utils', 'DBService', function($log, Utils, DBService) {
+app.directive("patientForm", ['$log','Utils', 'DBService','RestService', function($log, Utils, DBService, RestService) {
     return {
         templateUrl : "patientForm.html",
         link: function($scope, $element, $attrs) {
@@ -33,7 +33,8 @@ app.directive("patientForm", ['$log','Utils', 'DBService', function($log, Utils,
         			lastname : $scope.patient.name.family[0],
         			gender : $scope.patient.gender,
         			age : pAge,
-        			birthDate : $scope.patient.birthDate
+        			birthDate : $scope.patient.birthDate,
+        			shared: $scope.patient.shared
         		};
         	};
         	
@@ -105,9 +106,12 @@ app.directive("patientForm", ['$log','Utils', 'DBService', function($log, Utils,
 	        				$scope.patientToEdit.age, $scope.patientToEdit.birthDate, 
 	        				function(err, savedPatient) {
 	        					if (!err) {
-	        						$scope.loadPatientList();
-	        						$('#patientModal').modal('hide');
-	        						$scope.patient = savedPatient;        						
+	        						$scope.patient = savedPatient;     
+	        						$scope.loadPatientList(function(){
+	        							$scope.selectPatient(savedPatient._id);
+	        							$('#patientModal').modal('hide');
+	        						});
+	        						   						
 	        					} else {
 	        						$scope.error = "Une erreur a été rencontrée lors de"
 	        								+ " la création du nouveau patient. (Erreur : "
@@ -116,15 +120,44 @@ app.directive("patientForm", ['$log','Utils', 'DBService', function($log, Utils,
 	        			});
         			// It's an existing patient
         			else
+        				// update patient
         				DBService.updatePatient($scope.userId, $scope.patientToEdit.id, $scope.patientToEdit.firstname,
 	        				$scope.patientToEdit.lastname, $scope.patientToEdit.gender,
 	        				$scope.patientToEdit.age, $scope.patientToEdit.birthDate, 
 	        				function(err, numReplaced) {
 	        					if (!err) {
-	        						$scope.loadPatientList();
 	        						$scope.selectPatient($scope.patientToEdit.id);
-	        						$('#patientModal').modal('hide');
-	        						$scope.confirmation = "Le patient a été correctement modifié.";        						
+	        						$scope.loadPatientList(function(){
+	        							// if connected to server and patient record to be shared:
+	        							// send the update to the server
+	        							if($scope.serverConnection && $scope.patient.shared){
+			        						RestService.updateResource($scope.user, $scope.patient, $scope.patient, 'Patient'
+			        								, function(success, message){
+			        							if(success){
+			        								// note the date for last shared
+			        								var lastShared = new Date();
+			        								DBService.patientSharing($scope.userId, $scope.patient
+			        										, true, $scope.patient.idOnServer, lastShared
+			        								, function(err){$scope.patient.lastShared = lastShared;});
+			        							}else{
+			        								// if we could not send it to the server, we add it
+			        								// to the list of stuff to be updated later.
+			        								DBService.addToListForServer($scope.patient
+			        										, 'Patient', function(success){});
+			        							}
+			        						});
+	        							}
+	        							// if patient record to be shared but we're not connected to
+	        							// the server. Add the patient to the list of stuff to be 
+	        							// updated to the server.
+	        							else if(!$scope.serverConnection && $scope.patient.shared){
+	        								DBService.addToListForServer($scope.patient
+	        										, 'Patient', function(success){});
+	        							}
+		        						$('#patientModal').modal('hide');
+		        						$scope.confirmation = "Le patient a été correctement modifié.";  
+	        						});
+	        						      						
 	        					} else {
 	        						$scope.error = "Une erreur a été rencontrée lors de"
 	        								+ " la création du nouveau patient. (Erreur : "

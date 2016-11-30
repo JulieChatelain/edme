@@ -1,4 +1,4 @@
-app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR) {
+app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log, $http, FHIR, DBService) {
 
     var url = "http://localhost:3000";
     
@@ -43,9 +43,13 @@ app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR)
     		case 'Observation': FHIR.observation(user, patient, resource); break;
     		case 'Patient': FHIR.patient(user, patient); break;
     		}
-    		$http.post(url + '/rest/patientId/' + patient.idOnServer 
+    		$http.put(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
-    			next(res.data.success, res.data.message)
+    			
+    			DBService.removeFromListForServer(resource, resourceType, function(success){
+    				
+        			next(res.data.success, res.data.message);
+    			});
     		});
     	},
         patients: function(next) {
