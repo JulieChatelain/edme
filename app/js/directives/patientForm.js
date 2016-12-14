@@ -139,11 +139,6 @@ app.directive("patientForm", ['$log','Utils', 'DBService','RestService', functio
 			        								DBService.patientSharing($scope.userId, $scope.patient
 			        										, true, $scope.patient.idOnServer, lastShared
 			        								, function(err){$scope.patient.lastShared = lastShared;});
-			        							}else{
-			        								// if we could not send it to the server, we add it
-			        								// to the list of stuff to be updated later.
-			        								DBService.addToListForServer($scope.patient
-			        										, 'Patient', function(success){});
 			        							}
 			        						});
 	        							}

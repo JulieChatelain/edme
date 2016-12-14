@@ -45,11 +45,17 @@ app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log,
     		}
     		$http.put(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
-    			
-    			DBService.removeFromListForServer(resource, resourceType, function(success){
-    				
-        			next(res.data.success, res.data.message);
-    			});
+    			if(res.data.success){
+	    			DBService.removeFromListForServer(resource, resourceType, function(success){
+	        			next(res.data.success, res.data.message);
+	    			});
+    			}else{
+    				if(resource.shared){
+    					DBService.addToListForServer(resource, resourceType, function(success){
+    	        			next(res.data.success, res.data.message);
+    	    			});
+    				}
+    			}
     		});
     	},
         patients: function(next) {

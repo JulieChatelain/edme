@@ -1,4 +1,4 @@
-app.service('DBService', ['$log','EncryptionService', 'CodeService', function($log, EncryptionService, CodeService) {
+app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestService', function($log, EncryptionService, CodeService, RestService) {
 
 	var Datastore 	= require('nedb')
 	  , path 		= require('path')
@@ -179,7 +179,16 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', function($l
 				    	}
 			};
 			db.patients.update({_id: patientId, "relatedUsers" : userId}, patient
-					, {}, next);
+					, {}, function(err, numReplaced){
+				/*		
+				RestService.updateResource(user, patient, patient, 'Patient'
+						, function(success, message){
+					
+				});*/
+				
+				next(err, numReplaced)
+						
+			});
 		},
 		patientSharing : function(userId, patient, share, id, lastShared, next){	
 			
