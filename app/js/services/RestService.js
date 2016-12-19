@@ -1,6 +1,6 @@
 app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log, $http, FHIR, DBService) {
 
-    var url = "http://localhost:3000";
+    var url = "http://localhost:3000/ehr";
     
     return {
     	register: function(password, email, givenName, familyName, next){
@@ -64,11 +64,22 @@ app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log,
         patient: function(patientId, next) {
             $http.get(url + '/rest/patientId/' + patientId + '/Patient').then(next);
         },
-        getResource: function(resource, next) {
-            $http.get(url + '/rest/patientId/' + patientId + '/' + resource).then(next);
-        },
-        requestAccess: function(next) {
-        	$http.post(url + '/requestAccess', data).then(next);
-        }
+		getResources : function(patientId, resourceType, next) {
+			$http.get(url + '/rest/patientId/' + patientId + '/'
+							+ resourceType).then(next);
+		},
+		getResource : function(patientId, resourceType, resourceId, next) {
+			$http.get(url + '/rest/patientId/' + patientId + '/'
+							+ resourceType + '/' + resourceId).then(next);
+		},
+		requestAccess : function(code, doctorName, givenName, familyName, next) {
+			var data = {
+				code : code,
+				practitionerName : doctorName,
+				givenName : givenName,
+				familyName : familyName
+			};
+			$http.post(url + '/requestAccess', data).then(next);
+		}
     }
 }]);
