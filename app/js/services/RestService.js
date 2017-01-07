@@ -1,4 +1,4 @@
-app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log, $http, FHIR, DBService) {
+app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR) {
 
     var url = "http://localhost:3000/ehr";
     
@@ -46,14 +46,15 @@ app.service('RestService', ['$log', '$http', 'FHIR', 'DBService', function($log,
     		$http.put(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
     			if(res.data.success){
+    				/*
 	    			DBService.removeFromListForServer(resource, resourceType, function(success){
 	        			next(res.data.success, res.data.message);
-	    			});
+	    			});*/
     			}else{
-    				if(resource.shared){
+    				if(resource.shared){/*
     					DBService.addToListForServer(resource, resourceType, function(success){
     	        			next(res.data.success, res.data.message);
-    	    			});
+    	    			});*/
     				}
     			}
     		});
