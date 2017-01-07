@@ -75,6 +75,20 @@
 		{{patient.name.given[0]}} {{patient.name.family[0]}}
 	</h3>
 
+	<div class="panel panel-default" data-ng-show="patient && patient.hasBeenShared">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-2">
+					<b>Code du dossier </b>
+				</div>
+				<div class="col-md-10" style="color:white;">{{patient.code}}</div>
+			</div>
+			<div class="row text-muted">
+			<div class="col-md-12">Surligner le code pour le lire</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="panel panel-default" data-ng-show="patient"
 		data-ng-init="collapseInfos=false">
 		<div class="panel-heading">
@@ -87,7 +101,7 @@
 				data-ng-click="collapseInfos = !collapseInfos"></span> Informations
 
 			<button type="button" class="btn btn-default btn-xs btn-float-right"
-				data-ng-show="patient && !patient.shared && !patient.hasBeenShared"
+				data-ng-show="serverConnection && patient && !patient.shared && !patient.hasBeenShared"
 				data-ng-click="sharePatientInfo()">
 				<span class="glyphicon glyphicon-cloud-upload"></span> Partager
 			</button>

@@ -25,7 +25,7 @@ app.service('FHIR', ['$log', function($log) {
 			observation.identifier.push({
 				value: code,
 				assigner: {
-					reference: user.practitionerId,
+					reference: 'Practitioner/' + user.practitionerId,
 					display: user.familyName
 				}
 			});	

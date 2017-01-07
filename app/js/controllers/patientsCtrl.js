@@ -5,7 +5,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	
 	$scope.confirmation = ""; 	// Confirmation messages go there.
 	$scope.error = ""; 			// Error messages go there.
-	
+
 	$scope.open = {
 			patientInfo : true,
 			labResult: true

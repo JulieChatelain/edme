@@ -262,7 +262,7 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				    issued : dateResult,
 				    valueQuantity: {
 				        value: value,
-				        units: unit
+				        unit: unit
 				    },
 				    code: CodeService.findCodeLabResult(dataType),
 				    interpretation: {		
