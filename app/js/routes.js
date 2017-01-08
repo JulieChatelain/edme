@@ -22,7 +22,8 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 				templateUrl : 'partial-login.html',
 				controller : 'loginCtrl'
 			}
-		}
+		},
+        access: { requiredAuthentication: false }
 	})
 	
 	.state('register', {
@@ -42,7 +43,8 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 				templateUrl : 'partial-register.html',
 				controller : 'loginCtrl'
 			}
-		}
+		},
+        access: { requiredAuthentication: false }
 	})
 	
 	.state('parameters', {
@@ -62,7 +64,8 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 				templateUrl : 'partial-parameters.html',
 				controller : 'parametersCtrl'
 			}
-		}
+		},
+        access: { requiredAuthentication: true }
 	})
 	.state('dashboard', {
 		url : '/dashboard',
@@ -81,7 +84,8 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 				templateUrl : 'partial-menu.html',
 				controller : 'menuCtrl'
 			}
-		}
+		},
+        access: { requiredAuthentication: true }
 
 	})
 	.state('patients', {
@@ -101,7 +105,8 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 				templateUrl : 'partial-menu.html',
 				controller : 'menuCtrl'
 			}
-		}
+		},
+        access: { requiredAuthentication: true }
 
 	});
 	
@@ -125,4 +130,26 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 
 
 
+}).run(function ($rootScope, $location, $state, $log, $window, $injector, DBService) {
+    $rootScope.$on("$stateChangeStart", function (event, nextState, currentRoute) {
+        $rootScope.rootAlerts = [];
+        //$log.debug(" state: " + JSON.stringify(nextState));
+        // Get user account
+        if($window.localStorage.token){
+        	$rootScope.loggedIn = true;
+        	$rootScope.userId = $window.localStorage.token;
+    		DBService.findUserById($rootScope.userId, function(err, user){
+    			if(err || !user){
+    				$log.debug("Erreur lors du chargement des données utilisateurs.");
+    			}else{
+    				$rootScope.user = user;	
+    			}			
+    		});
+        }
+        
+        if (nextState !== null && nextState.access !== null && nextState.access.requiredAuthentication && !$window.localStorage.token) {
+            $log.debug("redirect...");
+        	$location.path("/login");
+        }
+    });
 });

@@ -1,6 +1,58 @@
-app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR) {
+
+app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $window, FHIR) {
+
 
     var url = "http://localhost:3000/ehr";
+    
+    var decode = function urlBase64Decode(str) {
+        var output = str.replace('-', '+').replace('_', '/');
+        switch (output.length % 4) {
+            case 0:
+                break;
+            case 2:
+                output += '==';
+                break;
+            case 3:
+                output += '=';
+                break;
+            default:
+                throw 'Illegal base64url string!';
+        }
+        return window.atob(output);
+    };
+    
+    var patientFHIR = function(user, patient){
+		 
+		var code = patient.code;
+		
+		patient.identifier = [];
+		
+		patient.identifier.push({
+			value: code,
+			assigner: {
+				reference: user.reference.practitionerId,
+				display: user.reference.familyName
+			}
+		});	
+ 	 };
+ 	 var observationFHIR = function(user, patient, observation){
+ 		var code = patient.code;
+		
+		observation.identifier = [];
+		
+		observation.identifier.push({
+			value: code,
+			assigner: {
+				reference: user.reference.practitionerId,
+				display: user.familyName
+			}
+		});	
+		
+		observation.subject = {
+			reference : "Patient/" + patient.idOnServer,
+			display: patient.name.given[0] + " " + patient.name.family[0]
+		};
+ 	 };
     
     return {
     	register: function(password, email, givenName, familyName, next){
@@ -26,13 +78,14 @@ app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR)
     		});
     	},
     	sendPatientRecord: function(user, patient, next){
-    		FHIR.patient(user, patient);
+    		patientFHIR(user, patient);
+    		//$log.debug("sending record : " + JSON.stringify(patient));
     		$http.post(url + '/rest/Patient', patient).then(function(res){
     			next(res.data.success, res.data.message, res.data.id)
     		});
     	},
     	sendObservation: function(user, patient, observation, next){
-    		FHIR.observation(user, patient, observation);
+    		observationFHIR(user, patient, observation);
     		$http.post(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/Observation', observation).then(function(res){
     			next(res.data.success, res.data.message, res.data.id)
@@ -45,18 +98,7 @@ app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR)
     		}
     		$http.put(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
-    			if(res.data.success){
-    				/*
-	    			DBService.removeFromListForServer(resource, resourceType, function(success){
-	        			next(res.data.success, res.data.message);
-	    			});*/
-    			}else{
-    				if(resource.shared){/*
-    					DBService.addToListForServer(resource, resourceType, function(success){
-    	        			next(res.data.success, res.data.message);
-    	    			});*/
-    				}
-    			}
+    			next(res.data.success);
     		});
     	},
         patients: function(next) {
@@ -80,7 +122,40 @@ app.service('RestService', ['$log', '$http', 'FHIR', function($log, $http, FHIR)
 				givenName : givenName,
 				familyName : familyName
 			};
-			$http.post(url + '/requestAccess', data).then(next);
-		}
+			$http.post(url + '/requestAccess', data).then(function(res){
+				//$log.debug("request Access response : " + JSON.stringify(res));
+				next(res.data.success, res.data.message);
+			});
+		},
+		listAccesses : function(next){			
+			$http.get(url + '/listAccess').then(function(res){
+				//$log.debug("access: " + JSON.stringify(res));
+				next(res.data.success, res.data.message, res.data.data);
+			});
+		},
+		revokeOwnAccess : function(recordId, next){
+			var data = {
+					recordId : recordId
+				};
+			$http.post(url + '/revokeOwnAccess', data).then(function(res){
+				//$log.debug("request Access response : " + JSON.stringify(res));
+				next(res.data.success, res.data.message);
+			});
+		},
+    	decodeToken: function(token){
+    		/*
+    		var decoded = null;
+            if (token) {
+                decoded = jwtHelper.decodeToken(token);
+            }
+            return decoded;
+            */
+	        var user = {};
+	        if (typeof token !== 'undefined') {
+	            var encoded = token.split('.')[1];
+	            user = JSON.parse(decode(encoded));
+	        }
+	        return user;
+    	},
     }
 }]);

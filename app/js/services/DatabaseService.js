@@ -200,11 +200,32 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 			var up = {
 					$set:{
 							idOnServer : id,
+							otherRecords : [],
 							shared : share,
 							hasBeenShared : true,
 							startShare : startShare,
 							lastShared : lastShared
 				    	}
+			};
+			
+			db.patients.update({_id: patient._id, "relatedUsers" : userId}, up
+					, {}, next);
+			
+		},
+		addRecord : function(userId, patient, id, next){	
+			
+			var up = {
+				 $addToSet: { otherRecords: id }
+			};
+			
+			db.patients.update({_id: patient._id, "relatedUsers" : userId}, up
+					, {}, next);
+			
+		},
+		removeRecord : function(userId, patient, id, next){	
+			
+			var up = {
+				$pull: { otherRecords: id }
 			};
 			
 			db.patients.update({_id: patient._id, "relatedUsers" : userId}, up
@@ -262,9 +283,9 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				    issued : dateResult,
 				    valueQuantity: {
 				        value: value,
-				        units: unit
+				        unit: unit
 				    },
-				    code: CodeService.findCodeLabResult(dataType),
+				    code: CodeService.findCodeLabResult(dataType, null),
 				    interpretation: {		
 				        coding: [{
 				            system: "eidmi",
@@ -277,6 +298,46 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				    relatedUsers:[userId],
 					lastUpdated : new Date()
 				};
+			$log.debug("adding data : " + JSON.stringify(observation));
+			db.observations.insert(observation, next);
+		},
+		addCopiedLabResult : function(userId, user, patient, ob, next){
+			var observation = {
+					 category: {				
+					     coding: [CodeService.labResult()],
+					     text: "Résultat de l'analyse au laboratoire"
+					 },
+				    subject: {				
+						reference : patient._id, 
+						display : patient.name.given[0] + " " + patient.name.family[0]
+				    },
+				    issued : new Date(ob.issued),
+				    valueQuantity: {
+				        value: ob.valueQuantity.value,
+				        unit: ob.valueQuantity.unit
+				    },
+				    code: CodeService.findCodeLabResult(null, ob.code.coding[0].code),
+				    comments: ob.comments,
+				    relatedUsers:[userId],
+					lastUpdated : new Date()
+				};
+			observation.identifier = [];
+			observation.identifier.push({
+				value: patient.code,
+				assigner: {
+					reference: 'Practitioner/' + user.practitionerId,
+					display: user.familyName
+				}
+			});	
+			observation.identifier.push({
+				value: ob.identifier[0].value,
+				assigner: {
+					reference: ob.identifier[0].assigner.reference,
+					display: ob.identifier[0].assigner.display
+				}
+			});	
+			
+			$log.debug("adding copy : " + JSON.stringify(observation));
 			db.observations.insert(observation, next);
 		},
 		deleteObservation : function(userId, id, next){

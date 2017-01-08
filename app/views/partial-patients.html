@@ -75,6 +75,20 @@
 		{{patient.name.given[0]}} {{patient.name.family[0]}}
 	</h3>
 
+	<div class="panel panel-default" data-ng-show="patient && patient.hasBeenShared">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-2">
+					<b>Code du dossier </b>
+				</div>
+				<div class="col-md-10" style="color:white;">{{patient.code}}</div>
+			</div>
+			<div class="row text-muted">
+			<div class="col-md-12">Surligner le code pour le lire</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="panel panel-default" data-ng-show="patient"
 		data-ng-init="collapseInfos=false">
 		<div class="panel-heading">
@@ -87,7 +101,7 @@
 				data-ng-click="collapseInfos = !collapseInfos"></span> Informations
 
 			<button type="button" class="btn btn-default btn-xs btn-float-right"
-				data-ng-show="patient && !patient.shared && !patient.hasBeenShared"
+				data-ng-show="serverConnection && patient && !patient.shared && !patient.hasBeenShared"
 				data-ng-click="sharePatientInfo()">
 				<span class="glyphicon glyphicon-cloud-upload"></span> Partager
 			</button>
@@ -161,62 +175,146 @@
 			laboratoire
 		</div>
 		<div id="patientData" class="panel-collapse collapse in">
-			<div class="panel-body">
+			<div class="panel-body" style="height: 500px; overflow-y: auto;">
+			
+				<ul class="nav nav-pills">
+				  <li data-ng-class="{ active: labTabActive('')}" 
+				  data-ng-click="changeRecordForLab('')">
+				  	<a href="">Mon dossier</a>
+				  </li>
+				  <li data-ng-repeat="record in records | orderBy: 'record.identifier[0].assigner.display'" 
+				  data-ng-click="changeRecordForLab(record.id)"
+				  data-ng-class="{ active: labTabActive(record.id)}">
+				  	<a href="">{{record.identifier[0].assigner.display}}</a>
+				  </li>
+				</ul>
 				<table class="table table-striped">
 					<thead>
 						<tr>
 							<th class="fit">Date</th>
 							<th>Type</th>
 							<th class="fit">Valeur</th>
+							<th class="fit">Origine</th>
 							<th>Commentaire</th>
 							<th class="fit"></th>
-							<th class="fit" data-ng-show="patient.hasBeenShared"></th>
+							<th class="fit" data-ng-show="patient.hasBeenShared && labRecordId == ''"></th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr
-							data-ng-repeat="result in patientData.labResult | orderBy: '-issued' | limitTo : 10">
+							data-ng-repeat="result in labResults | orderBy: '-issued'">
 							<td class="fit">{{result.issued | date :
 								"dd-MM-yyyy"}}</td>
 							<td>{{result.code.text}}</td>
 							<td class="fit">{{result.valueQuantity.value}}
-								{{result.valueQuantity.units}}</td>
+								{{result.valueQuantity.unit}}</td>
+							<td class="fit">{{findOrigin(result.identifier)}}</td>
 							<td class="col-md-4">{{result.comments}}</td>
-							<td><button
+							<td data-ng-show="labRecordId == ''"><button
 									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
 									data-ng-click="deleteLabResult(result._id)"></button>
 							</td>
-							<td data-ng-show="patient.hasBeenShared && !result.shared && !result.hasBeenShared"><button
+							<td data-ng-show="labRecordId == '' && patient.hasBeenShared && !result.shared && !result.hasBeenShared"><button
 									class="btn btn-default btn-xs fit"
 									data-ng-click="shareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud-upload"></span>
 									Partager
 									</button>
 							</td>
-							<td data-ng-show="patient.hasBeenShared && !result.shared && result.hasBeenShared"><button
+							<td data-ng-show="labRecordId == '' && patient.hasBeenShared && !result.shared && result.hasBeenShared"><button
 									class="btn btn-default btn-xs fit"
 									data-ng-click="shareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud-upload"></span>
 									Re-partager
 									</button>
 							</td>
-							<td data-ng-show="patient.hasBeenShared && result.shared"><button
+							<td data-ng-show="labRecordId == '' && patient.hasBeenShared && result.shared"><button
 									class="btn btn-default btn-xs fit"
 									data-ng-click="unshareLabResult(result)">
 									<span class="glyphicon glyphicon-cloud"></span>
 									Stop partage
 									</button>
 							</td>
+							<td data-ng-show="labRecordId != '' ">
+							<button class="btn btn-info btn-xs"
+									data-ng-click="addObservationToEHR(result)">
+									Ajouter à mon dossier</button>
+							</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<div class="panel-footer">
+			<div class="panel-footer"  data-ng-show="labRecordId == ''">
 				<button type="button" class="btn btn-info"
 					data-ng-click="addData()">
 					<span class="glyphicon glyphicon-plus"></span>Ajouter un résultat
 				</button>
 			</div>
+		</div>
+	</div>
+	
+		
+	<!-- ********************************************************************** -->
+	<!-- ***************************** Add record ***************************** -->
+	
+	<div class="panel panel-default" data-ng-show="patient && patient.hasBeenShared">
+	    <div class="panel-heading">Récupérer un dossier</div>
+	    <div class="panel-body">
+	        <form class="form-horizontal" name="form" data-ng-submit="addRecord(form);">
+	            <div class="row" style="padding-top: 10px;">
+	                <div class="col-xs-4" style="font-weight: bold;">Nom de famille du propriétaire du dossier</div>
+	                <div class="col-xs-8" style="overflow: hidden;text-overflow: ellipsis;">
+	                <input type="text" class="form-control" id="docName" data-ng-model="newEhr.doctorName" required></div>
+	            </div>
+	            <div class="row" style="padding-top: 10px;">
+	                <div class="col-xs-4" style="font-weight: bold;">Nom de famille du patient</div>
+	                <div class="col-xs-8" style="overflow: hidden;text-overflow: ellipsis;">
+	                <input type="text" class="form-control" id="patientName" data-ng-model="newEhr.familyName" required></div>
+	            </div>
+	            <div class="row" style="padding-top: 10px;">
+	                <div class="col-xs-4" style="font-weight: bold;">Prénom du patient</div>
+	                <div class="col-xs-8" style="overflow: hidden;text-overflow: ellipsis;">
+	                <input type="text" class="form-control" id="patientFirstname" data-ng-model="newEhr.givenName" required></div>
+	            </div>
+	            <div class="row" style="padding-top: 10px;">
+	                <div class="col-xs-4" style="font-weight: bold;">Code du dossier</div>
+	                <div class="col-xs-8" style="overflow: hidden;text-overflow: ellipsis;">
+	                <input type="text" class="form-control" id="code" name="code" 
+	                       data-ng-model="newEhr.code" data-ng-minlength="6" data-ng-maxlength="6" required></div>
+	            </div>
+	         <div class="text-left" style="padding: 0px 15px 5px 15px;">
+	             <button type="submit" class="btn btn-sm btn-primary btn-raised">Ajouter</button>
+	         </div>
+	        
+	        </form>
+	    </div>
+	</div>
+	
+	<div class="panel panel-default"  data-ng-show="patient && patient.hasBeenShared">
+		<div class="panel-heading">Dossiers récupérés
+		</div>
+		<div class="panel-body">
+		
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Propriétaire du dossier</th>
+						<th>Patient concerné</th>
+						<th>Révoquer mes droits au dossier</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-ng-repeat="record in records">
+						<td>{{record.identifier[0].assigner.display}}</td>
+						<td>{{record.name.given[0]}} {{record.name.family[0]}}</td>
+						<td><button
+								class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
+								data-ng-click="revokeMyRightToRecord(record.id)"></button>
+						</td>
+						
+					</tr>
+				</tbody>
+			</table>
 		</div>
 	</div>
 

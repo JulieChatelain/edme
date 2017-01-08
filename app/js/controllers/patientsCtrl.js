@@ -5,7 +5,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	
 	$scope.confirmation = ""; 	// Confirmation messages go there.
 	$scope.error = ""; 			// Error messages go there.
-	
+
 	$scope.open = {
 			patientInfo : true,
 			labResult: true
@@ -33,6 +33,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	
 	if($window.localStorage.serverToken){
 		$scope.serverConnection = true;
+        $scope.userOnServer = RestService.decodeToken($window.localStorage.serverToken);
 	}else{
 		$scope.serverConnection = false;
 	}
@@ -75,6 +76,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		PatientService.getAllRelatedData(userId, patientId, function(err, patientData){
 			if(!err){
 				$scope.patientData = patientData;
+				$scope.labResults = patientData.labResult;
 				$scope.$apply();
 			}
 			else{
@@ -82,6 +84,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				$scope.$apply();
 			}
 		});
+		
 	};
 		
 	/**
@@ -105,6 +108,36 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		}
 	};
 	
+
+	/**
+	 * Find a specific patient in the list via his id and
+	 * get all his data.
+	 */
+	$scope.selectPatient = function(patientId) {
+		$scope.records = [];
+		var len = $scope.patients.length;
+		for(var i = 0 ; i < len; ++i){
+			if($scope.patients[i]._id == patientId){
+				$scope.patient = $scope.patients[i];
+				$scope.loadPatientData($scope.userId, patientId);
+				$scope.labRecordId = '';
+				if($scope.patient.hasBeenShared){
+					var len2 = $scope.patient.otherRecords.length;
+					for(var k = 0; k < len2; ++k){
+						RestService.getResource($scope.patient.otherRecords[k]
+						,'Patient', $scope.patient.otherRecords[k], function(res){
+							//$log.debug("record: " + JSON.stringify(res.data));
+							if(res.data.identifier[0].assigner.reference != $scope.userOnServer.reference.practitionerId){
+		    					$scope.records.push(res.data);            						
+							}
+						});
+					}
+				}
+				//$log.debug("Patient: " + JSON.stringify($scope.patient));
+			}
+		}
+	};
+	
 	/**
 	 * Starts sharing the patient info with the server
 	 */
@@ -112,8 +145,9 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		// Only share if connected to the server
 		if($scope.serverConnection){	
 			// If the patient has never been shared, create a new record on the server
-			if(!$scope.patient.hasBeenShared){			
-				RestService.sendPatientRecord($scope.user, $scope.patient, function(success, message, savedId){
+			if(!$scope.patient.hasBeenShared){		
+				//$log.debug("user : " + JSON.stringify($scope.user));
+				RestService.sendPatientRecord($scope.userOnServer, $scope.patient, function(success, message, savedId){
 					if(success){
 						var id = savedId.split("/");
 						// Don't forget to indicate the record is now shared
@@ -142,7 +176,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				// Check if there were updates while the sharing was stopped
 				if($scope.patient.lastShared.getTime() < $scope.patient.lastUpdated){
 					// If there was, send the update to the server
-					RestService.updateResource($scope.user, $scope.patient, $scope.patient, 'Patient'
+					RestService.updateResource($scope.userOnServer, $scope.patient, $scope.patient, 'Patient'
 							, function(success, message){
 						if(success){
 							// Then note the date for last shared
@@ -214,19 +248,6 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		});
 	};
 	
-	/**
-	 * Find a specific patient in the list via his id and
-	 * get all his data.
-	 */
-	$scope.selectPatient = function(patientId) {
-		var len = $scope.patients.length;
-		for(var i = 0 ; i < len; ++i){
-			if($scope.patients[i]._id == patientId){
-				$scope.patient = $scope.patients[i];
-				$scope.loadPatientData($scope.userId, patientId);
-			}
-		}
-	};
 	
 	/**
 	 * Remove a patient
@@ -306,7 +327,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		if($scope.serverConnection){	
 			// If the result has never been shared, create a new one on the server
 			if(!result.hasBeenShared){
-				RestService.sendObservation($scope.user, $scope.patient, result, function(success, message, savedId){
+				RestService.sendObservation($scope.userOnServer, $scope.patient, result, function(success, message, savedId){
 					if(success){
 						var id = savedId.split("/");
 						DBService.observationSharing($scope.userId, result, true
@@ -331,7 +352,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				// Check if there were updates while the sharing was stopped
 				if($scope.patient.lastShared.getTime() < $scope.patient.lastUpdated){
 					// If there was, send the update to the server
-					RestService.updateResource($scope.user, $scope.patient, $scope.patient, 'Patient'
+					RestService.updateResource($scope.userOnServer, $scope.patient, $scope.patient, 'Patient'
 							, function(success, message){
 						if(success){
 							// Then note the date for last shared
@@ -397,6 +418,102 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 					+ " Le résultat existe cependant toujours sur le serveur."
 					+ " Mais vos prochaines mise à jour ne seront pas transmises.";
 				$scope.$apply();								
+			}
+		});
+	};
+	
+
+	$scope.findOrigin = function(identifiers){
+		if(identifiers){
+			var i = identifiers.length - 1;
+			return identifiers[i].assigner.display;	    			
+		}else{
+			return 'Moi';
+		}	
+	}
+	
+	$scope.labTabActive = function( tabRecordId){
+		if(tabRecordId == $scope.labRecordId){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	$scope.changeRecordForLab = function(pId){
+		
+		$scope.labRecordId = pId;
+		
+		if(pId == ''){
+			$scope.labResults = $scope.patientData.labResult;
+		}else{
+			var id = pId.split("/")[1];
+			RestService.getResources(id, 'Observation', function(res){
+				//$log.debug("observ: " + JSON.stringify(res.data));
+				$scope.labResults = res.data;
+				//$log.debug("observ: " + JSON.stringify($scope.observations));
+			});
+		}
+		
+	};
+	
+	$scope.addObservationToEHR = function(observation){
+		DBService.addCopiedLabResult($scope.userId, $scope.user, $scope.patient, observation, function(err, savedData){
+			if (!err) {
+				$log.debug("savedData : " + JSON.savedData);
+				$scope.confirmation = "Les données ont été correctement sauvées.";  
+				$scope.labRecordId = '';
+				$scope.loadPatientData($scope.userId, $scope.patient._id);
+				
+				$scope.$apply();
+			}else {
+				$scope.error = "Une erreur a été rencontrée lors de"
+					+ " la copie de donnée. (Erreur : "
+					+ err + ")";  
+				$scope.$apply();
+			} 
+		});
+	};
+	
+
+	$scope.newEhr = {
+			doctorName : "",
+			givenName : "",
+			familyName : "",
+			code : ""
+	};
+
+	
+	$scope.addRecord = function(form){
+		RestService.requestAccess($scope.newEhr.code, $scope.newEhr.doctorName
+				, $scope.newEhr.givenName, $scope.newEhr.familyName, function(success, id){
+			
+			if(success){
+				DBService.addRecord($scope.userId, $scope.patient, id, function(){
+					$scope.selectPatient($scope.patient._id);					
+					$scope.confirmation = 'Dossier correctement récupéré.';				
+				});
+			}else{
+				$log.debug(message);
+				$scope.error = message;		
+				$scope.$apply();					
+			}
+			
+		});
+	};
+	
+	$scope.revokeMyRightToRecord = function(recordId){
+		var rID = recordId.split("/")[1];
+		RestService.revokeOwnAccess(rID, function(success,message){
+			if(success){
+				DBService.removeRecord($scope.userId, $scope.patient, rID, function(){
+					$state.transitionTo('patients');					
+					$scope.confirmation = 'Opération réussie.';						
+				});			
+			}else{
+				$log.debug(message);
+				$scope.error = message;	   
+				$scope.$apply();						
 			}
 		});
 	};

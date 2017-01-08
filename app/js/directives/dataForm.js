@@ -61,6 +61,7 @@ app.directive("patientDataForm", ['$log','Utils', 'DBService', function($log, Ut
         					$scope.newData.comments, 
         					function(err, savedData){
 		        				if (!err) {
+		        					$log.debug("savedData : " + JSON.savedData);
 		    						$('#dataModal').modal('hide');    
 		    						$scope.confirmation = "Les données ont été correctement sauvées.";  
 		    						$scope.loadPatientData($scope.userId, $scope.patient._id);

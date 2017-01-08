@@ -27,6 +27,7 @@ app.controller('parametersCtrl', function ($scope, $log, $state, $window, RestSe
 	
 	if($window.localStorage.serverToken){
 		$scope.serverConnection = true;
+        $scope.userOnServer = RestService.decodeToken($window.localStorage.serverToken);
 	}else{
 		$scope.serverConnection = false;
 	}
@@ -93,5 +94,5 @@ app.controller('parametersCtrl', function ($scope, $log, $state, $window, RestSe
 		});
 	};
 	
-	
+
 });

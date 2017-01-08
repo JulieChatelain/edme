@@ -12,7 +12,7 @@ app.service('FHIR', ['$log', function($log) {
 			patient.identifier.push({
 				value: code,
 				assigner: {
-					reference: user.practitionerId,
+					reference: 'Practitioner/' + user.practitionerId,
 					display: user.familyName
 				}
 			});	
@@ -20,15 +20,17 @@ app.service('FHIR', ['$log', function($log) {
      	 observation : function(user, patient, observation){
      		var code = patient.code;
 			
-			observation.identifier = [];
+     		if(!observation.identifier){
+     			observation.identifier = [];
 			
-			observation.identifier.push({
-				value: code,
-				assigner: {
-					reference: user.practitionerId,
-					display: user.familyName
-				}
-			});	
+				observation.identifier.push({
+					value: code,
+					assigner: {
+						reference: 'Practitioner/' + user.practitionerId,
+						display: user.familyName
+					}
+				});	
+     		}
 			
 			observation.subject = {
 				reference : "Patient/" + patient.idOnServer,

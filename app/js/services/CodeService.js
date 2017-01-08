@@ -33,21 +33,39 @@ app.service('CodeService', [ '$log', function($log) {
 		};
 	};
 	
-	this.findCodeLabResult = function(dataType){
+	this.findCodeLabResult = function(dataType, snomedCode){
 		var codeResult = {};
-		switch (dataType){
-			case 'HbA1c' : codeResult = {
-					coding: [ this.HbA1c_test()],
-			        text: "Niveau de hémoglobine A1c"
-			};break;
-			case 'BNP' : codeResult = {
-					coding: [ this.BNP_test()],
-			        text: "Niveau de BNP"
-			}; break;
-			case 'NT-proBNP' : codeResult = {
-					coding: [ this.NTproBNP_test()],
-			        text: "Niveau de NT-proBNP"
-			}; break;	
+		if(dataType){
+			switch (dataType){
+				case 'HbA1c' : codeResult = {
+						coding: [ this.HbA1c_test()],
+				        text: "Niveau de hémoglobine A1c"
+				};break;
+				case 'BNP' : codeResult = {
+						coding: [ this.BNP_test()],
+				        text: "Niveau de BNP"
+				}; break;
+				case 'NT-proBNP' : codeResult = {
+						coding: [ this.NTproBNP_test()],
+				        text: "Niveau de NT-proBNP"
+				}; break;	
+			}
+		}
+		if(snomedCode){
+			switch (snomedCode){
+				case '43396009' : codeResult = {
+						coding: [ this.HbA1c_test()],
+				        text: "Niveau de hémoglobine A1c"
+				};break;
+				case '390917008' : codeResult = {
+						coding: [ this.BNP_test()],
+				        text: "Niveau de BNP"
+				}; break;
+				case '414799001' : codeResult = {
+						coding: [ this.NTproBNP_test()],
+				        text: "Niveau de NT-proBNP"
+				}; break;	
+			}
 		}
 		return codeResult;
 	};
