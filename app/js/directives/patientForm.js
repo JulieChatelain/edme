@@ -1,6 +1,6 @@
 app.directive("patientForm", ['$log','Utils', 'DBService','RestService', function($log, Utils, DBService, RestService) {
     return {
-        templateUrl : "patientForm.html",
+        templateUrl : "formPatient.html",
         link: function($scope, $element, $attrs) {
         	
         	// We use the same form for creation and update of patient informations
@@ -145,10 +145,11 @@ app.directive("patientForm", ['$log','Utils', 'DBService','RestService', functio
 	        							// if patient record to be shared but we're not connected to
 	        							// the server. Add the patient to the list of stuff to be 
 	        							// updated to the server.
+	        							/*
 	        							else if(!$scope.serverConnection && $scope.patient.shared){
 	        								DBService.addToListForServer($scope.patient
 	        										, 'Patient', function(success){});
-	        							}
+	        							}*/
 		        						$('#patientModal').modal('hide');
 		        						$scope.confirmation = "Le patient a été correctement modifié.";  
 	        						});

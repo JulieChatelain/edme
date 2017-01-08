@@ -59,6 +59,7 @@
 
 	<patient-data-form></patient-data-form>
 	<patient-form></patient-form>
+	<condition-form></condition-form>
 
 
 	<!-- ****************************************************************** -->
@@ -100,6 +101,8 @@
 				data-target="#patientInfos" data-ng-show="collapseInfos"
 				data-ng-click="collapseInfos = !collapseInfos"></span> Informations
 
+			
+			
 			<button type="button" class="btn btn-default btn-xs btn-float-right"
 				data-ng-show="serverConnection && patient && !patient.shared && !patient.hasBeenShared"
 				data-ng-click="sharePatientInfo()">
@@ -117,6 +120,14 @@
 				data-ng-show="patient && patient.shared"
 				data-ng-click="unsharePatientInfo()">
 				<span class="glyphicon glyphicon-cloud"></span> Stop partage
+			</button>
+			
+			
+			<button type="button" class="btn btn-default btn-xs btn-float-right"
+				style="margin-right:3px;"
+				data-ng-show="serverConnection && patient && patient.shared && patient.lastUpdated > patient.lastShared"
+				data-ng-click="upPatientInfoOnServer()">
+				<span class="glyphicon glyphicon-transfer"></span> Synchro avec serveur
 			</button>
 
 		</div>
@@ -162,6 +173,10 @@
 		</div>
 	</div>
 
+	<!-- ********************************************************************** -->
+	<!-- **************************** Lab Results ***************************** -->
+	<!-- ********************************************************************** -->
+	
 	<div class="panel panel-default" data-ng-show="patient"
 		data-ng-init="collapseData=false">
 		<div class="panel-heading">
@@ -175,7 +190,7 @@
 			laboratoire
 		</div>
 		<div id="patientData" class="panel-collapse collapse in">
-			<div class="panel-body" style="height: 500px; overflow-y: auto;">
+			<div class="panel-body" style="max-height: 500px; overflow-y: auto;">
 			
 				<ul class="nav nav-pills">
 				  <li data-ng-class="{ active: labTabActive('')}" 
@@ -196,8 +211,9 @@
 							<th class="fit">Valeur</th>
 							<th class="fit">Origine</th>
 							<th>Commentaire</th>
-							<th class="fit"></th>
+							<th class="fit" data-ng-show="labRecordId == ''"></th>
 							<th class="fit" data-ng-show="patient.hasBeenShared && labRecordId == ''"></th>
+							<th class="fit" data-ng-show="labRecordId != ''"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -212,7 +228,7 @@
 							<td class="col-md-4">{{result.comments}}</td>
 							<td data-ng-show="labRecordId == ''"><button
 									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
-									data-ng-click="deleteLabResult(result._id)"></button>
+									data-ng-click="deleteLabResult(result)"></button>
 							</td>
 							<td data-ng-show="labRecordId == '' && patient.hasBeenShared && !result.shared && !result.hasBeenShared"><button
 									class="btn btn-default btn-xs fit"
@@ -253,9 +269,112 @@
 		</div>
 	</div>
 	
+	<!-- ********************************************************************** -->
+	<!-- ***************************** Conditions ***************************** -->
+	<!-- ********************************************************************** -->
+	
+	<div class="panel panel-default" data-ng-show="patient"
+		data-ng-init="collapseConditions=false">
+		<div class="panel-heading">
+			<span class="glyphicon glyphicon-collapse-down"
+				data-toggle="collapse" data-target="#patientConditions"
+				data-ng-show="!collapseConditions"
+				data-ng-click="collapseConditions = !collapseConditions"></span> <span
+				class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientConditions" data-ng-show="collapseConditions"
+				data-ng-click="collapseConditions = !collapseConditions"></span> 
+				Maladies
+		</div>
+		<div id="patientConditions" class="panel-collapse collapse in">
+			<div class="panel-body" style="max-height: 500px; overflow-y: auto;">
+			
+				<ul class="nav nav-pills">
+				  <li data-ng-class="{ active: conditionTabActive('')}" 
+				  data-ng-click="changeRecordForCondition('')">
+				  	<a href="">Mon dossier</a>
+				  </li>
+				  <li data-ng-repeat="record in records | orderBy: 'record.identifier[0].assigner.display'" 
+				  data-ng-click="changeRecordForCondition(record.id)"
+				  data-ng-class="{ active: conditionTabActive(record.id)}">
+				  	<a href="">{{record.identifier[0].assigner.display}}</a>
+				  </li>
+				</ul>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th class="fit">Début</th>
+							<th>Maladie</th>
+							<th class="fit">Status</th>
+							<th class="fit">Origine</th>
+							<th>Commentaire</th>
+							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
+							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
+							<th class="fit" data-ng-show="patient.hasBeenShared && conditionRecordId == ''"></th>
+							<th class="fit" data-ng-show="conditionRecordId != ''"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							data-ng-repeat="c in conditions | orderBy: '-onsetDateTime' | filter: {clinicalStatus:'active'}">
+							<td class="fit">{{c.onsetDateTime | date :
+								"dd-MM-yyyy"}}</td>
+							<td>{{c.code.text}}</td>
+							<td class="fit">{{c.clinicalStatus}}</td>
+							<td class="fit">{{findOrigin(c.identifier)}}</td>
+							<td class="col-md-4">{{c.notes}}</td>
+							<td data-ng-show="conditionRecordId == ''"><button
+									class="btn btn-primary btn-xs glyphicon glyphicon-pencil fit"
+									data-ng-click="editCondition(c)"></button>
+							</td>
+							<td data-ng-show="conditionRecordId == ''"><button
+									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
+									data-ng-click="deleteCondition(c)"></button>
+							</td>
+							<td data-ng-show="conditionRecordId == '' && patient.hasBeenShared && !c.shared && !c.hasBeenShared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="shareCondition(c)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Partager
+									</button>
+							</td>
+							<td data-ng-show="conditionRecordId == '' && patient.hasBeenShared && !c.shared && c.hasBeenShared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="shareCondition(c)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Re-partager
+									</button>
+							</td>
+							<td data-ng-show="conditionRecordId == '' && patient.hasBeenShared && c.shared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="unshareCondition(c)">
+									<span class="glyphicon glyphicon-cloud"></span>
+									Stop partage
+									</button>
+							</td>
+							<td data-ng-show="conditionRecordId != '' ">
+							<button class="btn btn-info btn-xs"
+									data-ng-click="addConditionToEHR(c)">
+									Ajouter à mon dossier</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="panel-footer"  data-ng-show="conditionRecordId == ''">
+				<button type="button" class="btn btn-info"
+					data-ng-click="createCondition()">
+					<span class="glyphicon glyphicon-plus"></span>Ajouter une maladie
+				</button>
+			</div>
+		</div>
+	</div>	
+		
+		
+		
 		
 	<!-- ********************************************************************** -->
 	<!-- ***************************** Add record ***************************** -->
+	<!-- ********************************************************************** -->
 	
 	<div class="panel panel-default" data-ng-show="patient && patient.hasBeenShared">
 	    <div class="panel-heading">Récupérer un dossier</div>

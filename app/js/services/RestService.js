@@ -25,30 +25,56 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
 		 
 		var code = patient.code;
 		
-		patient.identifier = [];
-		
-		patient.identifier.push({
-			value: code,
-			assigner: {
-				reference: user.reference.practitionerId,
-				display: user.reference.familyName
-			}
-		});	
+		if(!patient.identifier){
+			patient.identifier = [];
+			
+			patient.identifier.push({
+				value: code,
+				assigner: {
+					reference: user.reference.practitionerId,
+					display: user.reference.familyName
+				}
+			});	
+		}
  	 };
- 	 var observationFHIR = function(user, patient, observation){
+ 	 var observationFHIR = function(userOnServer, patient, observation){
  		var code = patient.code;
 		
-		observation.identifier = [];
+ 		if(!observation.identifier){
+ 			observation.identifier = [];
 		
-		observation.identifier.push({
-			value: code,
-			assigner: {
-				reference: user.reference.practitionerId,
-				display: user.familyName
-			}
-		});	
+			observation.identifier.push({
+				value: code,
+				assigner: {
+					reference: userOnServer.reference.practitionerId,
+					display: userOnServer.reference.familyName
+				}
+			});	
+ 		}
 		
 		observation.subject = {
+			reference : "Patient/" + patient.idOnServer,
+			display: patient.name.given[0] + " " + patient.name.family[0]
+		};
+ 	 };
+ 	 
+
+ 	 var conditionFHIR = function(userOnServer, patient, condition){
+ 		var code = patient.code;
+		
+ 		if(!condition.identifier){
+ 			condition.identifier = [];
+		
+ 			condition.identifier.push({
+				value: code,
+				assigner: {
+					reference: userOnServer.reference.practitionerId,
+					display: userOnServer.reference.familyName
+				}
+			});	
+ 		}
+		
+		observation.patient = {
 			reference : "Patient/" + patient.idOnServer,
 			display: patient.name.given[0] + " " + patient.name.family[0]
 		};
@@ -77,24 +103,36 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
     			next(res.data.success, res.data.message, res.data.user, res.data.token)
     		});
     	},
-    	sendPatientRecord: function(user, patient, next){
-    		patientFHIR(user, patient);
+    	sendPatientRecord: function(userOnServer, patient, next){
+    		patientFHIR(userOnServer, patient);
     		//$log.debug("sending record : " + JSON.stringify(patient));
     		$http.post(url + '/rest/Patient', patient).then(function(res){
     			next(res.data.success, res.data.message, res.data.id)
     		});
     	},
-    	sendObservation: function(user, patient, observation, next){
-    		observationFHIR(user, patient, observation);
+    	sendObservation: function(userOnServer, patient, observation, next){
+    		observationFHIR(userOnServer, patient, observation);
     		$http.post(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/Observation', observation).then(function(res){
     			next(res.data.success, res.data.message, res.data.id)
     		});
     	},
-    	updateResource: function(user, patient, resource, resourceType, next){
+    	sendResource : function(userOnServer, patient, resource, resourceType, next){
     		switch(resourceType){
-    		case 'Observation': FHIR.observation(user, patient, resource); break;
-    		case 'Patient': FHIR.patient(user, patient); break;
+    		case 'Observation': observationFHIR(user, patient, resource); break;
+    		case 'Patient': patientFHIR(user, patient); break;
+    		case 'Condition': conditionFHIR(user, patient, resource); break;
+    		}
+    		$http.post(url + '/rest/patientId/' + patient.idOnServer 
+    				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
+    			next(res.data.success, res.data.message, res.data.id)
+    		});
+    	},
+    	updateResource: function(userOnServer, patient, resource, resourceType, next){
+    		switch(resourceType){
+    		case 'Observation': observationFHIR(userOnServer, patient, resource); break;
+    		case 'Patient': patientFHIR(userOnServer, patient); break;
+    		case 'Condition': conditionFHIR(userOnServer, patient, resource); break;
     		}
     		$http.put(url + '/rest/patientId/' + patient.idOnServer 
     				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
@@ -114,6 +152,10 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
 		getResource : function(patientId, resourceType, resourceId, next) {
 			$http.get(url + '/rest/patientId/' + patientId + '/'
 							+ resourceType + '/' + resourceId).then(next);
+		},
+		deleteResource : function(patientId, resourceType, resourceId, next){
+			$http.delete(url + '/rest/patientId/' + patientId + '/'
+					+ resourceType + '/' + resourceId).then(next);
 		},
 		requestAccess : function(code, doctorName, givenName, familyName, next) {
 			var data = {

@@ -151,6 +151,7 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				    gender : gender,
 				    birthDate : birthday,
 				    relatedUsers:[userId],
+					otherRecords : [],
 				    shared : false,
 				    hasBeenShared : false,
 					lastUpdated : new Date()
@@ -200,7 +201,6 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 			var up = {
 					$set:{
 							idOnServer : id,
-							otherRecords : [],
 							shared : share,
 							hasBeenShared : true,
 							startShare : startShare,
@@ -298,10 +298,10 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				    relatedUsers:[userId],
 					lastUpdated : new Date()
 				};
-			$log.debug("adding data : " + JSON.stringify(observation));
+			//$log.debug("adding data : " + JSON.stringify(observation));
 			db.observations.insert(observation, next);
 		},
-		addCopiedLabResult : function(userId, user, patient, ob, next){
+		addCopiedLabResult : function(userId, userOnServer, patient, ob, next){
 			var observation = {
 					 category: {				
 					     coding: [CodeService.labResult()],
@@ -325,8 +325,8 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 			observation.identifier.push({
 				value: patient.code,
 				assigner: {
-					reference: 'Practitioner/' + user.practitionerId,
-					display: user.familyName
+					reference: userOnServer.reference.practitionerId,
+					display:  userOnServer.reference.familyName
 				}
 			});	
 			observation.identifier.push({
@@ -337,7 +337,7 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				}
 			});	
 			
-			$log.debug("adding copy : " + JSON.stringify(observation));
+			//$log.debug("adding copy : " + JSON.stringify(observation));
 			db.observations.insert(observation, next);
 		},
 		deleteObservation : function(userId, id, next){
@@ -365,6 +365,106 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 			db.observations.update({_id: observation._id, "relatedUsers" : userId}
 			, up, {}, next);
 			
+		},
+
+		// --------------------------------------------------------------------
+		// -------------------------- CONDITIONS ------------------------------
+		
+		findConditions : function(userId, patientId, status, next) {		
+			if(status){
+				db.conditions.find({"patient.reference" : patientId, 
+					"clinicalStatus" : status, "relatedUsers" : userId}, next);				
+			}else{
+				db.conditions.find({"patient.reference" : patientId, 
+					"relatedUsers" : userId}, next);						
+			}
+		},
+		createCondition : function(userId, condition, next){
+			
+			//$log.debug("adding data : " + JSON.stringify(condition));
+			db.conditions.insert(condition, next);
+		},
+		addCopiedCondition : function(userId, userOnServer, patient, cond, next){
+			var condition = {
+    				patient: {			
+						reference : patient._id, 
+						display : patient.name.given[0] + " " + patient.name.family[0]
+    				},
+    				dateRecorded : new Date(cond.dateRecorded),
+    				clinicalStatus: cond.clinicalStatus,
+    				code: {
+    					text : cond.code.text
+    				},
+    				onsetDateTime: new Date(cond.onsetDateTime),
+    				abatementDateTime : new Date(cond.abatementDateTime),
+    				notes: cond.notes
+    			};
+					
+			condition.identifier = [];
+			condition.identifier.push({
+				value: patient.code,
+				assigner: {
+					reference: userOnServer.reference.practitionerId,
+					display:  userOnServer.reference.familyName
+				}
+			});
+			condition.identifier.push({
+				value: ob.identifier[0].value,
+				assigner: {
+					reference: ob.identifier[0].assigner.reference,
+					display: ob.identifier[0].assigner.display
+				}
+			});	
+			
+			$log.debug("adding copy : " + JSON.stringify(observation));
+			db.observations.insert(observation, next);
+		},
+		deleteCondition : function(userId, id, next){
+			db.conditions.remove({ _id: id, "relatedUsers" : userId}
+			, {}, next);
+		},
+		conditionSharing : function(userId, condition, share, id
+				, lastShared, next){
+			
+			var startShare = new Date();
+			
+			if(condition.startShare){
+				startShare = condition.startShare;
+			}
+			var up = {
+					$set:{
+							idOnServer : id,
+							shared : share,
+							hasBeenShared : true,
+							startShare : startShare,
+							lastShared : lastShared
+				    	}
+			};
+			
+			db.conditions.update({_id: condition._id, "relatedUsers" : userId}
+			, up, {}, next);
+		},
+		updateCondition : function(userId, condition, next){
+			var abatementDateTime = null;
+			if(condition.abatementDateTime){
+				abatementDateTime = new Date(condition.abatementDateTime);
+			}
+			var newCond = {
+					$set:{
+							clinicalStatus: condition.clinicalStatus,
+							onsetDateTime : new Date(condition.onsetDateTime),
+							abatementDateTime: abatementDateTime,
+							"code.text":  condition.code.text,
+		    				notes : condition.notes,
+							lastUpdated : new Date()
+				    	}
+			};
+			db.conditions.update({_id: condition._id, "relatedUsers" : userId}, condition
+					, {}, function(err, numReplaced){
+				
+				next(err, numReplaced)
+						
+			});
 		}
 	}
 }]);

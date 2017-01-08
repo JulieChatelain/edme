@@ -33,6 +33,15 @@ app.service('CodeService', [ '$log', function($log) {
 		};
 	};
 	
+
+	this.riskFactor = function(){
+		return {
+			system: "http://hl7.org/fhir/observation-category",
+	         code: "risk-factor",
+	         display: "Facteur de risque"
+		};
+	};
+	
 	this.findCodeLabResult = function(dataType, snomedCode){
 		var codeResult = {};
 		if(dataType){

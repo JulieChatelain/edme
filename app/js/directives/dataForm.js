@@ -1,6 +1,6 @@
 app.directive("patientDataForm", ['$log','Utils', 'DBService', function($log, Utils, DBService) {
     return {
-        templateUrl : "dataForm.html",
+        templateUrl : "formLabResult.html",
         link: function($scope, $element, $attrs) {
         	
         	

@@ -77,6 +77,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 			if(!err){
 				$scope.patientData = patientData;
 				$scope.labResults = patientData.labResult;
+				$scope.conditions = patientData.conditions;
 				$scope.$apply();
 			}
 			else{
@@ -121,6 +122,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				$scope.patient = $scope.patients[i];
 				$scope.loadPatientData($scope.userId, patientId);
 				$scope.labRecordId = '';
+				$scope.conditionRecordId = '';
 				if($scope.patient.hasBeenShared){
 					var len2 = $scope.patient.otherRecords.length;
 					for(var k = 0; k < len2; ++k){
@@ -190,15 +192,6 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 									$scope.$apply();
 								});									
 							});
-						}else{
-							// if we could not send it to the server, we add it
-							// to the list of stuff to be updated later.
-							DBService.addToListForServer($scope.patient
-									, 'Patient', function(success){
-								$scope.error = "Le dossier n'a pas pu être mis à jour sur le serveur."
-									+ "L'application réessayera automatiquement de le réenvoyer plus tard.";
-								$scope.$apply();								
-							});
 						}
 					});		
 				}
@@ -248,6 +241,22 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		});
 	};
 	
+	$scope.upPatientInfoOnServer =  function(){
+		RestService.updateResource($scope.userOnServer, $scope.patient, $scope.patient, 'Patient'
+				, function(success, message){
+			if(success){
+				// note the date for last shared
+				var lastShared = new Date();
+				DBService.patientSharing($scope.userId, $scope.patient
+						, true, $scope.patient.idOnServer, lastShared
+				, function(err){
+						$scope.patient.lastShared = lastShared;
+						$scope.selectPatient($scope.patient._id);					
+						$scope.confirmation = 'Dossier synchronisé.';		
+					});
+			}
+		});
+	}
 	
 	/**
 	 * Remove a patient
@@ -264,6 +273,10 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
                 	// then delete it
             		DBService.deletePatient($scope.userId, $scope.patient._id, function(err, numRemoved){
             			if(!err && numRemoved == 1) {
+            				if($scope.patient.shared){
+            					RestService.deleteResource($scope.patient.idOnServer, 'Patient'
+            							, $scope.patient.idOnServer, function(res){});
+            				}
             				$scope.confirmation = "Le patient a été correctement supprimé.";
             				$scope.loadPatientList(function(){});
             				$scope.patient = null;
@@ -284,10 +297,15 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
         });
 	};
 	
+	
+	// ------------------------------------------------------------------------
+	// --------------------------- LAB RESULTS --------------------------------
+	// ------------------------------------------------------------------------
+	
 	/**
 	 * Removes an analysis result from the db.
 	 */
-	$scope.deleteLabResult = function(id){
+	$scope.deleteLabResult = function(result){
 		// First, ask for confirmation
 		BootstrapDialog.show({
             title: 'Supprimer ce résultat?',
@@ -297,8 +315,12 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
                 label: 'Supprimer',
                 action: function(dialog) {
                 	// then delete it
-					DBService.deleteObservation($scope.userId, id, function(err, numRemoved){
+					DBService.deleteObservation($scope.userId, result._id, function(err, numRemoved){
 						if(!err && numRemoved == 1) {
+							if(result.shared){
+            					RestService.deleteResource($scope.patient.idOnServer, 'Observation'
+            							, result.idOnServer, function(res){});
+            				}
 							$scope.confirmation = "Le résultat a été correctement supprimé.";
 							$scope.loadPatientData($scope.userId, $scope.patient._id);
 						}else{
@@ -350,9 +372,9 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				});	
 			}else{
 				// Check if there were updates while the sharing was stopped
-				if($scope.patient.lastShared.getTime() < $scope.patient.lastUpdated){
+				if($scope.result.lastShared.getTime() < $scope.result.lastUpdated){
 					// If there was, send the update to the server
-					RestService.updateResource($scope.userOnServer, $scope.patient, $scope.patient, 'Patient'
+					RestService.updateResource($scope.userOnServer, $scope.patient, result, 'Observation'
 							, function(success, message){
 						if(success){
 							// Then note the date for last shared
@@ -368,15 +390,6 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 									$scope.confirmation = "Le résultat a bien été mis à jour sur le serveur.";
 									$scope.$apply();								
 								}								
-							});
-						}else{
-							// if we could not send it to the server, we add it
-							// to the list of stuff to be updated later.
-							DBService.addToListForServer(result
-									, 'Observation', function(success){
-								$scope.error = "La donnée n'a pas pu être mise à jour sur le serveur."
-									+ "L'application réessayera automatiquement de la réenvoyer plus tard.";
-								$scope.$apply();								
 							});
 						}
 					});
@@ -458,9 +471,9 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 	};
 	
 	$scope.addObservationToEHR = function(observation){
-		DBService.addCopiedLabResult($scope.userId, $scope.user, $scope.patient, observation, function(err, savedData){
+		DBService.addCopiedLabResult($scope.userId, $scope.userOnServer, $scope.patient, observation, function(err, savedData){
 			if (!err) {
-				$log.debug("savedData : " + JSON.savedData);
+				//$log.debug("savedData : " + JSON.savedData);
 				$scope.confirmation = "Les données ont été correctement sauvées.";  
 				$scope.labRecordId = '';
 				$scope.loadPatientData($scope.userId, $scope.patient._id);
@@ -474,7 +487,205 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 			} 
 		});
 	};
+
+
+	// ------------------------------------------------------------------------
+	// --------------------------- CONDITIONS ---------------------------------
+	// ------------------------------------------------------------------------
 	
+	
+	
+	
+	/**
+	 * Removes a condition from the db.
+	 */
+	$scope.deleteCondition = function(condition){
+		// First, ask for confirmation
+		BootstrapDialog.show({
+            title: 'Supprimer cette maladie?',
+            message: 'Êtes-vous certain de vouloir supprimer cette maladie?'
+            	+ '<br>Elle ne pourra pas être récupérée.',
+            buttons: [{
+                label: 'Supprimer',
+                action: function(dialog) {
+                	// then delete it
+					DBService.deleteCondition($scope.userId, condition._id, function(err, numRemoved){
+						if(!err && numRemoved == 1) {
+							if(condition.shared){
+            					RestService.deleteResource($scope.patient.idOnServer, 'Condition'
+            							, condition.idOnServer, function(res){});
+            				}
+							$scope.confirmation = "Le résultat a été correctement supprimé.";
+							$scope.loadPatientData($scope.userId, $scope.patient._id);
+						}else{
+							$scope.error = "Une erreur s'est produite lors de" 
+								+ " la suppression du résultat. Veuillez réessayer.";
+							$scope.$apply();
+						}
+					});
+                    dialog.close();
+                },
+                cssClass: 'btn-danger'
+            }, {
+                label: 'Annuler',
+                action: function(dialog){
+                    dialog.close();
+                }
+            }]
+        });
+	};
+	
+	/**
+	 * Send the condition on the server to be shared
+	 */
+	$scope.shareCondition = function(condition){
+		// Only share if connected to the server
+		if($scope.serverConnection){	
+			// If the condition has never been shared, create a new one on the server
+			if(!condition.hasBeenShared){
+				RestService.sendResource($scope.userOnServer, $scope.patient, condition,'Condition', function(success, message, savedId){
+					if(success){
+						var id = savedId.split("/");
+						DBService.conditionSharing($scope.userId, condition, true
+								, id[1], new Date(), function(err){
+							if(err){
+								$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
+								$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
+								$scope.$apply();				
+							}else{
+								$scope.loadPatientData($scope.userId, $scope.patient._id);								
+								$scope.confirmation = "Le résultat a bien été envoyé sur le serveur.";
+								$scope.$apply();								
+							}
+						});
+					}else{
+						$log.debug(message);
+						$scope.error = message;
+						$scope.$apply();
+					}
+				});	
+			}else{
+				// Check if there were updates while the sharing was stopped
+				if($scope.condition.lastShared.getTime() < $scope.condition.lastUpdated){
+					// If there was, send the update to the server
+					RestService.updateResource($scope.userOnServer, $scope.patient, condition, 'Condition'
+							, function(success, message){
+						if(success){
+							// Then note the date for last shared
+							var lastShared = new Date();
+							DBService.conditionSharing($scope.userId, condition, true
+									, condition.idOnServer, condition.lastShared, function(err){
+								if(err){
+									$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
+									$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
+									$scope.$apply();				
+								}else{
+									$scope.loadPatientData($scope.userId, $scope.patient._id);								
+									$scope.confirmation = "Le résultat a bien été mis à jour sur le serveur.";
+									$scope.$apply();								
+								}								
+							});
+						}
+					});
+				}else{
+
+					DBService.conditionSharing($scope.userId, condition, true
+							, condition.idOnServer, condition.lastShared, function(err){
+						if(err){
+							$log.debug("Le partage de dossier n'a pas pu être noté dans la DB.");
+							$scope.error = "Le partage de dossier n'a pas pu être noté dans la DB. Erreur: " + err;
+							$scope.$apply();				
+						}else{
+							$scope.loadPatientData($scope.userId, $scope.patient._id);								
+							$scope.confirmation = message;
+							$scope.$apply();								
+						}
+					});
+				}
+			}
+		}else{
+			$scope.error = "Impossible de se connecter au serveur. Veuilez réinitialiser la connexion.";
+			$scope.$apply();
+		}
+	};
+	
+	/**
+	 * Stop sharing the condition
+	 */
+	$scope.unshareCondition = function(condition){
+		DBService.conditionSharing($scope.userId, condition._id, false
+				, condition.idOnServer, condition.lastShared, function(err){
+			if(err){
+				$scope.error = "L'opération a échoué. Vérifiez que vous êtes bien connecté au serveur.";
+				result.shared = true;
+				$scope.$apply();				
+			}else{
+				condition.shared = false;
+				$scope.confirmation = "Le partage a été stoppé." 
+					+ " Le résultat existe cependant toujours sur le serveur."
+					+ " Mais vos prochaines mise à jour ne seront pas transmises.";
+				$scope.$apply();								
+			}
+		});
+	};
+	
+
+	$scope.findOrigin = function(identifiers){
+		if(identifiers){
+			var i = identifiers.length - 1;
+			return identifiers[i].assigner.display;	    			
+		}else{
+			return 'Moi';
+		}	
+	}
+	
+	$scope.conditionTabActive = function( tabRecordId){
+		if(tabRecordId == $scope.conditionRecordId){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	$scope.changeRecordForCondition = function(pId){
+		
+		$scope.conditionRecordId = pId;
+		
+		if(pId == ''){
+			$scope.conditions = $scope.patientData.conditions;
+		}else{
+			var id = pId.split("/")[1];
+			RestService.getResources(id, 'Condition', function(res){
+				//$log.debug("observ: " + JSON.stringify(res.data));
+				$scope.conditions = res.data;
+				//$log.debug("observ: " + JSON.stringify($scope.observations));
+			});
+		}
+		
+	};
+	
+	$scope.addConditionToEHR = function(condition){
+		DBService.addCopiedCondition($scope.userId, $scope.userOnServer, $scope.patient, condition, function(err, savedData){
+			if (!err) {
+				//$log.debug("savedData : " + JSON.savedData);
+				$scope.confirmation = "Les données ont été correctement sauvées.";  
+				$scope.conditionRecordId = '';
+				$scope.loadPatientData($scope.userId, $scope.patient._id);
+				
+				$scope.$apply();
+			}else {
+				$scope.error = "Une erreur a été rencontrée lors de"
+					+ " la copie de donnée. (Erreur : "
+					+ err + ")";  
+				$scope.$apply();
+			} 
+		});
+	};
+	
+	
+	// ------------------------------------------------------------------------
+	// ----------------------------- RECORDS ----------------------------------
+	// ------------------------------------------------------------------------
 
 	$scope.newEhr = {
 			doctorName : "",
