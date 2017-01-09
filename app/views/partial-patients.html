@@ -309,6 +309,7 @@
 							<th>Commentaire</th>
 							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
 							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
+							<th class="fit" data-ng-show="conditionRecordId == '' && patient.hasBeenShared"></th>
 							<th class="fit" data-ng-show="patient.hasBeenShared && conditionRecordId == ''"></th>
 							<th class="fit" data-ng-show="conditionRecordId != ''"></th>
 						</tr>
@@ -329,6 +330,13 @@
 							<td data-ng-show="conditionRecordId == ''"><button
 									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
 									data-ng-click="deleteCondition(c)"></button>
+							</td>
+							
+							<td data-ng-show="conditionRecordId == '' && c.shared && c.lastUpdated > c.lastShared">
+								<button type="button" class="btn btn-default btn-xs fit"
+									data-ng-click="upConditionOnServer(c)">
+									<span class="glyphicon glyphicon-transfer"></span> Synchroniser
+								</button>
 							</td>
 							<td data-ng-show="conditionRecordId == '' && patient.hasBeenShared && !c.shared && !c.hasBeenShared"><button
 									class="btn btn-default btn-xs fit"
@@ -369,7 +377,116 @@
 		</div>
 	</div>	
 		
-		
+	<!-- ********************************************************************** -->
+	<!-- ***************************** History ******************************** -->
+	<!-- ********************************************************************** -->
+	
+	<div class="panel panel-default" data-ng-show="patient"
+		data-ng-init="collapseHistory=false">
+		<div class="panel-heading">
+			<span class="glyphicon glyphicon-collapse-down"
+				data-toggle="collapse" data-target="#patientHistory"
+				data-ng-show="!collapseHistory"
+				data-ng-click="collapseHistory = !collapseHistory"></span> <span
+				class="glyphicon glyphicon-expand" data-toggle="collapse"
+				data-target="#patientHistory" data-ng-show="collapseHistory"
+				data-ng-click="collapseHistory = !collapseHistory"></span> 
+				Antécédents
+		</div>
+		<div id="patientHistory" class="panel-collapse collapse in">
+			<div class="panel-body" style="max-height: 500px; overflow-y: auto;">
+			
+				<ul class="nav nav-pills">
+				  <li data-ng-class="{ active: historyTabActive('')}" 
+				  data-ng-click="changeRecordForHistory('')">
+				  	<a href="">Mon dossier</a>
+				  </li>
+				  <li data-ng-repeat="record in records | orderBy: 'record.identifier[0].assigner.display'" 
+				  data-ng-click="changeRecordForHistory(record.id)"
+				  data-ng-class="{ active: historyTabActive(record.id)}">
+				  	<a href="">{{record.identifier[0].assigner.display}}</a>
+				  </li>
+				</ul>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th class="fit">Début</th>
+							<th class="fit">Rémission</th>
+							<th>Maladie</th>
+							<th class="fit">Status</th>
+							<th class="fit">Origine</th>
+							<th>Commentaire</th>
+							<th class="fit" data-ng-show="historyRecordId == ''"></th>
+							<th class="fit" data-ng-show="historyRecordId == ''"></th>
+							<th class="fit" data-ng-show="historyRecordId == '' && patient.hasBeenShared"></th>
+							<th class="fit" data-ng-show="patient.hasBeenShared && historyRecordId == ''"></th>
+							<th class="fit" data-ng-show="historyRecordId != ''"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							data-ng-repeat="c in history | orderBy: '-onsetDateTime' | filter: {clinicalStatus:'resolved'}">
+							<td class="fit">{{c.onsetDateTime | date :
+								"dd-MM-yyyy"}}</td>
+								<td class="fit">{{c.abatementDateTime | date :
+								"dd-MM-yyyy"}}</td>
+							<td>{{c.code.text}}</td>
+							<td class="fit">{{c.clinicalStatus}}</td>
+							<td class="fit">{{findOrigin(c.identifier)}}</td>
+							<td class="col-md-4">{{c.notes}}</td>
+							<td data-ng-show="historyRecordId == ''"><button
+									class="btn btn-primary btn-xs glyphicon glyphicon-pencil fit"
+									data-ng-click="editCondition(c)"></button>
+							</td>
+							<td data-ng-show="historyRecordId == ''"><button
+									class="btn btn-danger btn-xs glyphicon glyphicon-remove fit"
+									data-ng-click="deleteCondition(c)"></button>
+							</td>
+							
+							<td data-ng-show="historyRecordId == '' && c.shared && c.lastUpdated > c.lastShared">
+								<button type="button" class="btn btn-default btn-xs fit"
+									data-ng-click="upConditionOnServer(c)">
+									<span class="glyphicon glyphicon-transfer"></span> Synchroniser
+								</button>
+							</td>
+							<td data-ng-show="historyRecordId == '' && patient.hasBeenShared && !c.shared && !c.hasBeenShared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="shareCondition(c)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Partager
+									</button>
+							</td>
+							<td data-ng-show="historyRecordId == '' && patient.hasBeenShared && !c.shared && c.hasBeenShared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="shareCondition(c)">
+									<span class="glyphicon glyphicon-cloud-upload"></span>
+									Re-partager
+									</button>
+							</td>
+							<td data-ng-show="historyRecordId == '' && patient.hasBeenShared && c.shared"><button
+									class="btn btn-default btn-xs fit"
+									data-ng-click="unshareCondition(c)">
+									<span class="glyphicon glyphicon-cloud"></span>
+									Stop partage
+									</button>
+							</td>
+							<td data-ng-show="historyRecordId != '' ">
+							<button class="btn btn-info btn-xs"
+									data-ng-click="addConditionToEHR(c)">
+									Ajouter à mon dossier</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="panel-footer"  data-ng-show="historyRecordId == ''">
+				<button type="button" class="btn btn-info"
+					data-ng-click="createCondition()">
+					<span class="glyphicon glyphicon-plus"></span>Ajouter un antécédent
+				</button>
+			</div>
+		</div>
+	</div>	
 		
 		
 	<!-- ********************************************************************** -->
@@ -435,6 +552,23 @@
 				</tbody>
 			</table>
 		</div>
+	</div>
+	
+	<div class="panel panel-default" data-ng-show="patient && patient.hasBeenShared">
+	    <div class="panel-heading">Révoquer les droits de quelqu'un de voir ce dossier</div>
+	    <div class="panel-body">
+	        <form class="form-horizontal" name="form" data-ng-submit="revokeSomeoneRightToRecord();">
+	            <div class="row" style="padding-top: 10px;">
+	                <div class="col-xs-4" style="font-weight: bold;">Nom de famille de la personne</div>
+	                <div class="col-xs-8" style="overflow: hidden;text-overflow: ellipsis;">
+	                <input type="text" class="form-control" id="revokeName" data-ng-model="revokeName" required></div>
+	            </div>
+	         <div class="text-left" style="padding: 0px 15px 5px 15px;">
+	             <button type="submit" class="btn btn-sm btn-primary btn-raised">Révoquer</button>
+	         </div>
+	        
+	        </form>
+	    </div>
 	</div>
 
 </section>

@@ -78,6 +78,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				$scope.patientData = patientData;
 				$scope.labResults = patientData.labResult;
 				$scope.conditions = patientData.conditions;
+				$scope.history = patientData.history;
 				$scope.$apply();
 			}
 			else{
@@ -123,6 +124,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				$scope.loadPatientData($scope.userId, patientId);
 				$scope.labRecordId = '';
 				$scope.conditionRecordId = '';
+				$scope.historyRecordId = '';
+				$scope.revokeName = '';
 				if($scope.patient.hasBeenShared){
 					var len2 = $scope.patient.otherRecords.length;
 					for(var k = 0; k < len2; ++k){
@@ -617,30 +620,28 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				, condition.idOnServer, condition.lastShared, function(err){
 			if(err){
 				$scope.error = "L'opération a échoué. Vérifiez que vous êtes bien connecté au serveur.";
-				result.shared = true;
+				condition.shared = true;
 				$scope.$apply();				
 			}else{
 				condition.shared = false;
 				$scope.confirmation = "Le partage a été stoppé." 
 					+ " Le résultat existe cependant toujours sur le serveur."
-					+ " Mais vos prochaines mise à jour ne seront pas transmises.";
+					+ " Mais vos prochaines mises à jour ne seront pas transmises.";
 				$scope.$apply();								
 			}
 		});
 	};
-	
-
-	$scope.findOrigin = function(identifiers){
-		if(identifiers){
-			var i = identifiers.length - 1;
-			return identifiers[i].assigner.display;	    			
-		}else{
-			return 'Moi';
-		}	
-	}
-	
+		
 	$scope.conditionTabActive = function( tabRecordId){
 		if(tabRecordId == $scope.conditionRecordId){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	$scope.historyTabActive = function( tabRecordId){
+		if(tabRecordId == $scope.historyRecordId){
 			return true;
 		}else{
 			return false;
@@ -664,14 +665,32 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		
 	};
 	
+
+	$scope.changeRecordForHistory = function(pId){
+		
+		$scope.historyRecordId = pId;
+		
+		if(pId == ''){
+			$scope.history = $scope.patientData.history;
+		}else{
+			var id = pId.split("/")[1];
+			RestService.getResources(id, 'Condition', function(res){
+				//$log.debug("observ: " + JSON.stringify(res.data));
+				$scope.history = res.data;
+				//$log.debug("observ: " + JSON.stringify($scope.observations));
+			});
+		}
+		
+	};
+	
 	$scope.addConditionToEHR = function(condition){
 		DBService.addCopiedCondition($scope.userId, $scope.userOnServer, $scope.patient, condition, function(err, savedData){
 			if (!err) {
 				//$log.debug("savedData : " + JSON.savedData);
 				$scope.confirmation = "Les données ont été correctement sauvées.";  
-				$scope.conditionRecordId = '';
+				$scope.conditionRecordId = ''; 
+				$scope.historyRecordId = '';
 				$scope.loadPatientData($scope.userId, $scope.patient._id);
-				
 				$scope.$apply();
 			}else {
 				$scope.error = "Une erreur a été rencontrée lors de"
@@ -682,6 +701,23 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		});
 	};
 	
+	$scope.upConditionOnServer =  function(condition){
+		RestService.updateResource($scope.userOnServer, $scope.patient, condition, 'Condition'
+				, function(success, message){
+			if(success){
+				// note the date for last shared
+				var lastShared = new Date();
+				DBService.conditionSharing($scope.userId, condition
+						, true, condition.idOnServer, lastShared
+				, function(err){
+						condition.lastShared = lastShared;
+						$scope.loadPatientData($scope.userId, $scope.patient._id);
+						$scope.confirmation = 'Dossier synchronisé.';
+						$scope.$apply();							
+					});
+			}
+		});
+	}
 	
 	// ------------------------------------------------------------------------
 	// ----------------------------- RECORDS ----------------------------------
@@ -701,6 +737,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 			
 			if(success){
 				DBService.addRecord($scope.userId, $scope.patient, id, function(){
+					$state.transitionTo('patients');
 					$scope.selectPatient($scope.patient._id);					
 					$scope.confirmation = 'Dossier correctement récupéré.';				
 				});
@@ -721,6 +758,20 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 					$state.transitionTo('patients');					
 					$scope.confirmation = 'Opération réussie.';						
 				});			
+			}else{
+				$log.debug(message);
+				$scope.error = message;	   
+				$scope.$apply();						
+			}
+		});
+	};
+	
+	$scope.revokeSomeoneRightToRecord = function(){
+		RestService.revokeAccess($scope.patient.idOnServer, $scope.revokeName,function(success,message){
+			if(success){	
+				$scope.revokeName = '';
+				$scope.confirmation = 'Opération réussie.';	  
+				$scope.$apply();				
 			}else{
 				$log.debug(message);
 				$scope.error = message;	   

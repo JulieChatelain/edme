@@ -12,6 +12,7 @@ app.service('PatientService', ['$log', 'DBService', 'CodeService', function($log
 					//$log.debug("conditions : " + JSON.stringify(conditions));
 					if(!err){
 						patientData.conditions = conditions;
+						patientData.history = conditions;
 						
 						next(null, patientData);
 						

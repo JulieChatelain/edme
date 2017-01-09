@@ -74,7 +74,7 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
 			});	
  		}
 		
-		observation.patient = {
+ 		condition.patient = {
 			reference : "Patient/" + patient.idOnServer,
 			display: patient.name.given[0] + " " + patient.name.family[0]
 		};
@@ -119,12 +119,12 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
     	},
     	sendResource : function(userOnServer, patient, resource, resourceType, next){
     		switch(resourceType){
-    		case 'Observation': observationFHIR(user, patient, resource); break;
-    		case 'Patient': patientFHIR(user, patient); break;
-    		case 'Condition': conditionFHIR(user, patient, resource); break;
+    		case 'Observation': observationFHIR(userOnServer, patient, resource); break;
+    		case 'Patient': patientFHIR(userOnServer, patient); break;
+    		case 'Condition': conditionFHIR(userOnServer, patient, resource); break;
     		}
     		$http.post(url + '/rest/patientId/' + patient.idOnServer 
-    				+ '/' + resourceType + '/' + resource.idOnServer, resource).then(function(res){
+    				+ '/' + resourceType, resource).then(function(res){
     			next(res.data.success, res.data.message, res.data.id)
     		});
     	},
@@ -180,6 +180,16 @@ app.service('RestService', ['$log', '$http', 'FHIR',  function($log, $http, $win
 					recordId : recordId
 				};
 			$http.post(url + '/revokeOwnAccess', data).then(function(res){
+				//$log.debug("request Access response : " + JSON.stringify(res));
+				next(res.data.success, res.data.message);
+			});
+		},
+		revokeAccess : function (rID, name,next){
+			var data = {
+					recordId : rID,
+					familyName : name
+				};
+			$http.post(url + '/revokeAccess', data).then(function(res){
 				//$log.debug("request Access response : " + JSON.stringify(res));
 				next(res.data.success, res.data.message);
 			});

@@ -397,7 +397,11 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
     				},
     				onsetDateTime: new Date(cond.onsetDateTime),
     				abatementDateTime : new Date(cond.abatementDateTime),
-    				notes: cond.notes
+    				notes: cond.notes,
+    				hasBeenShared: false,
+    				shared: false,
+				    relatedUsers:[userId],
+					lastUpdated : new Date()
     			};
 					
 			condition.identifier = [];
@@ -409,15 +413,15 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 				}
 			});
 			condition.identifier.push({
-				value: ob.identifier[0].value,
+				value: cond.identifier[0].value,
 				assigner: {
-					reference: ob.identifier[0].assigner.reference,
-					display: ob.identifier[0].assigner.display
+					reference: cond.identifier[0].assigner.reference,
+					display: cond.identifier[0].assigner.display
 				}
 			});	
 			
-			$log.debug("adding copy : " + JSON.stringify(observation));
-			db.observations.insert(observation, next);
+			$log.debug("adding copy : " + JSON.stringify(condition));
+			db.conditions.insert(condition, next);
 		},
 		deleteCondition : function(userId, id, next){
 			db.conditions.remove({ _id: id, "relatedUsers" : userId}
