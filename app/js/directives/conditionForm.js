@@ -37,7 +37,7 @@ app.directive("conditionForm", ['$log','Utils', 'DBService','RestService', funct
         	 * 
         	 */
         	var createForm = {
-        			title : "Ajouter une maladie",
+        			title : "Ajouter",
         			submit: "Ajouter"
         	};
         	
