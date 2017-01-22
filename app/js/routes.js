@@ -68,7 +68,7 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
         access: { requiredAuthentication: true }
 	})
 	.state('dashboard', {
-		url : '/dashboard',
+		url : '/patients',
 		views : {
 
 			'' : {
@@ -76,7 +76,7 @@ app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
 			},
 
 			'contents@dashboard' : {
-				templateUrl : 'partial-dashboard.html',
+				templateUrl : 'partial-patients.html',
 				controller : 'patientsCtrl'
 			},
 
