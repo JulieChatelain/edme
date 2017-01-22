@@ -8,6 +8,7 @@ app.controller('menuCtrl', function ($scope, $log, $state, $window) {
     
     $scope.logOut = function (){
     	delete $window.localStorage.token;
+    	delete $window.localStorage.serverToken;
     	$state.transitionTo('login');
     };
     

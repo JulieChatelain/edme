@@ -306,7 +306,7 @@
 							<th>Maladie</th>
 							<th class="fit">Status</th>
 							<th class="fit">Origine</th>
-							<th>Commentaire</th>
+							<!-- <th>Commentaire</th> -->
 							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
 							<th class="fit" data-ng-show="conditionRecordId == ''"></th>
 							<th class="fit" data-ng-show="conditionRecordId == '' && patient.hasBeenShared"></th>
@@ -322,7 +322,7 @@
 							<td>{{c.code.text}}</td>
 							<td class="fit">{{c.clinicalStatus}}</td>
 							<td class="fit">{{findOrigin(c.identifier)}}</td>
-							<td class="col-md-4">{{c.notes}}</td>
+							<!--<td class="col-md-4">{{c.notes}}</td> -->
 							<td data-ng-show="conditionRecordId == ''"><button
 									class="btn btn-primary btn-xs glyphicon glyphicon-pencil fit"
 									data-ng-click="editCondition(c)"></button>
@@ -415,7 +415,7 @@
 							<th>Maladie</th>
 							<th class="fit">Status</th>
 							<th class="fit">Origine</th>
-							<th>Commentaire</th>
+							<!-- <th>Commentaire</th> -->
 							<th class="fit" data-ng-show="historyRecordId == ''"></th>
 							<th class="fit" data-ng-show="historyRecordId == ''"></th>
 							<th class="fit" data-ng-show="historyRecordId == '' && patient.hasBeenShared"></th>
@@ -433,7 +433,7 @@
 							<td>{{c.code.text}}</td>
 							<td class="fit">{{c.clinicalStatus}}</td>
 							<td class="fit">{{findOrigin(c.identifier)}}</td>
-							<td class="col-md-4">{{c.notes}}</td>
+							<!-- <td class="col-md-4">{{c.notes}}</td> -->
 							<td data-ng-show="historyRecordId == ''"><button
 									class="btn btn-primary btn-xs glyphicon glyphicon-pencil fit"
 									data-ng-click="editCondition(c)"></button>

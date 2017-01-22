@@ -97,8 +97,6 @@ app.directive("conditionForm", ['$log','Utils', 'DBService','RestService', funct
         				// update condition
         				DBService.updateCondition($scope.userId, $scope.conditionToEdit, 
 	        				function(err, numReplaced) {
-	        					if (!err) {
-
 		    						$('#conditionModal').modal('hide');    
 		    						$scope.confirmation = "Les données ont été correctement sauvées.";  
 		    						
@@ -111,22 +109,18 @@ app.directive("conditionForm", ['$log','Utils', 'DBService','RestService', funct
 		        								DBService.conditionSharing($scope.userId, $scope.conditionToEdit
 		        										, true, $scope.patient.idOnServer, lastShared
 		        								, function(err){
-		        		    						$scope.loadPatientData($scope.userId, $scope.patient._id);
-		        		    						$scope.$apply(); 
+		        									$scope.selectPatient($scope.patient._id);
+		        		    						//$scope.loadPatientData($scope.userId, $scope.patient._id);
+		        		    						//$scope.$apply(); 
 		        									});
 		        							}
 		        						});
         							}else{
-    		    						$scope.loadPatientData($scope.userId, $scope.patient._id);
-    		    						$scope.$apply();        								
-        							}
-	        						
-	        						      						
-	        					} else {
-	        						$scope.error = "Une erreur a été rencontrée lors de"
-	        								+ " la modification. (Erreur : "
-	        								+ err + ")";
-	        					}
+        								$scope.selectPatient($scope.patient._id);
+    		    						//$scope.loadPatientData($scope.userId, $scope.patient._id);
+    		    						//$scope.$apply();        								
+        							} 						
+	        					
     	        		});
         				
         		}else{

@@ -329,13 +329,15 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 					display:  userOnServer.reference.familyName
 				}
 			});	
-			observation.identifier.push({
-				value: ob.identifier[0].value,
-				assigner: {
-					reference: ob.identifier[0].assigner.reference,
-					display: ob.identifier[0].assigner.display
-				}
-			});	
+			for(var i = 0; i < ob.identifier.length; ++i){
+				observation.identifier.push({
+					value: ob.identifier[i].value,
+					assigner: {
+						reference: ob.identifier[i].assigner.reference,
+						display: ob.identifier[i].assigner.display
+					}
+				});	
+			}
 			
 			//$log.debug("adding copy : " + JSON.stringify(observation));
 			db.observations.insert(observation, next);
@@ -412,15 +414,17 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 					display:  userOnServer.reference.familyName
 				}
 			});
-			condition.identifier.push({
-				value: cond.identifier[0].value,
-				assigner: {
-					reference: cond.identifier[0].assigner.reference,
-					display: cond.identifier[0].assigner.display
-				}
-			});	
+			for(var i = 0; i < cond.identifier.length; ++i){
+				condition.identifier.push({
+					value: cond.identifier[i].value,
+					assigner: {
+						reference: cond.identifier[i].assigner.reference,
+						display: cond.identifier[i].assigner.display
+					}
+				});	
+			}
 			
-			$log.debug("adding copy : " + JSON.stringify(condition));
+			//$log.debug("adding copy : " + JSON.stringify(condition));
 			db.conditions.insert(condition, next);
 		},
 		deleteCondition : function(userId, id, next){
@@ -463,9 +467,9 @@ app.service('DBService', ['$log','EncryptionService', 'CodeService', 'RestServic
 							lastUpdated : new Date()
 				    	}
 			};
-			db.conditions.update({_id: condition._id, "relatedUsers" : userId}, condition
+			db.conditions.update({_id: condition._id, "relatedUsers" : userId}, newCond
 					, {}, function(err, numReplaced){
-				
+				//$log.debug("err :" + err+ " numRepl : " + numReplaced);
 				next(err, numReplaced)
 						
 			});

@@ -375,7 +375,7 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 				});	
 			}else{
 				// Check if there were updates while the sharing was stopped
-				if($scope.result.lastShared.getTime() < $scope.result.lastUpdated){
+				if(result.lastShared.getTime() < result.lastUpdated){
 					// If there was, send the update to the server
 					RestService.updateResource($scope.userOnServer, $scope.patient, result, 'Observation'
 							, function(success, message){
@@ -755,7 +755,8 @@ app.controller('patientsCtrl', function($scope, $log, $state, $window,
 		RestService.revokeOwnAccess(rID, function(success,message){
 			if(success){
 				DBService.removeRecord($scope.userId, $scope.patient, rID, function(){
-					$state.transitionTo('patients');					
+					$state.transitionTo('patients');
+					$scope.selectPatient($scope.patient._id);	
 					$scope.confirmation = 'Opération réussie.';						
 				});			
 			}else{
